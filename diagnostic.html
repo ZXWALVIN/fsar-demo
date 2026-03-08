@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FSAR v5.0-L 诊断工具</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0d0f14;
+            color: #00ff00;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 { color: #00d4ff; }
+        .section {
+            background: #1a1d29;
+            border: 1px solid #00d4ff;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
+        .warning { color: #f39c12; }
+        button {
+            background: #00d4ff;
+            color: #0d0f14;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover { background: #00a8cc; }
+        #console {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #000;
+            padding: 10px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 FSAR v5.0-L 诊断工具</h1>
+
+    <div class="section">
+        <h2>快速测试</h2>
+        <button onclick="testTooltips()">测试 Tooltips</button>
+        <button onclick="testSpawn()">测试车辆生成</button>
+        <button onclick="testSparks()">测试火花动画</button>
+        <button onclick="openMain()">打开主文件</button>
+    </div>
+
+    <div class="section">
+        <h2>控制台输出</h2>
+        <div id="console"></div>
+    </div>
+
+    <script>
+        const consoleDiv = document.getElementById('console');
+
+        function log(msg, type = 'info') {
+            const p = document.createElement('p');
+            p.className = type;
+            p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            consoleDiv.appendChild(p);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function testTooltips() {
+            log('开始测试 Tooltips...', 'info');
+
+            fetch('fsar-demo-hightech.html')
+                .then(r => r.text())
+                .then(html => {
+                    const tooltipIds = ['tooltip-conflict', 'tooltip-isolation', 'tooltip-relief', 'tooltip-flow'];
+                    const iconIds = ['icon-flow', 'icon-relief'];
+
+                    tooltipIds.forEach(id => {
+                        if (html.includes(`id="${id}"`)) {
+                            log(`✅ ${id} 存在`, 'success');
+                        } else {
+                            log(`❌ ${id} 缺失`, 'error');
+                        }
+                    });
+
+                    iconIds.forEach(id => {
+                        if (html.includes(`id="${id}"`)) {
+                            log(`✅ ${id} 存在`, 'success');
+                        } else {
+                            log(`❌ ${id} 缺失`, 'error');
+                        }
+                    });
+
+                    if (html.includes('initTooltips')) {
+                        log('✅ initTooltips 函数存在', 'success');
+                    } else {
+                        log('❌ initTooltips 函数缺失', 'error');
+                    }
+                })
+                .catch(e => log(`❌ 读取文件失败: ${e.message}`, 'error'));
+        }
+
+        function testSpawn() {
+            log('开始测试车辆生成...', 'info');
+
+            fetch('fsar-demo-hightech.html')
+                .then(r => r.text())
+                .then(html => {
+                    const checks = [
+                        'function spawnVehicles',
+                        'new Vehicle(',
+                        'tradVehicles.push',
+                        'fsarVehicles.push',
+                        'getFlowLevel'
+                    ];
+
+                    checks.forEach(check => {
+                        if (html.includes(check)) {
+                            log(`✅ ${check} 存在`, 'success');
+                        } else {
+                            log(`❌ ${check} 缺失`, 'error');
+                        }
+                    });
+                })
+                .catch(e => log(`❌ 读取文件失败: ${e.message}`, 'error'));
+        }
+
+        function testSparks() {
+            log('开始测试火花动画...', 'info');
+
+            fetch('fsar-demo-hightech.html')
+                .then(r => r.text())
+                .then(html => {
+                    const checks = [
+                        'class FrictionSpark',
+                        'detectFrictionConflict',
+                        'updateFrictionSparks',
+                        'drawFrictionSparks',
+                        'frictionSparks'
+                    ];
+
+                    checks.forEach(check => {
+                        if (html.includes(check)) {
+                            log(`✅ ${check} 存在`, 'success');
+                        } else {
+                            log(`❌ ${check} 缺失`, 'error');
+                        }
+                    });
+                })
+                .catch(e => log(`❌ 读取文件失败: ${e.message}`, 'error'));
+        }
+
+        function openMain() {
+            log('打开主文件...', 'info');
+            window.open('fsar-demo-hightech.html', '_blank');
+        }
+
+        // 自动运行所有测试
+        window.onload = function() {
+            log('=== 自动诊断开始 ===', 'warning');
+            setTimeout(() => testTooltips(), 500);
+            setTimeout(() => testSpawn(), 1000);
+            setTimeout(() => testSparks(), 1500);
+            setTimeout(() => log('=== 诊断完成 ===', 'warning'), 2000);
+        };
+    </script>
+</body>
+</html>

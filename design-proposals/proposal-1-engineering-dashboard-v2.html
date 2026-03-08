@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方案1：现代工程仪表盘风格 v2 - 优化布局</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1d29 100%);
+            color: #e0e6ed;
+            min-height: 100vh;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        /* 顶部系统栏 */
+        .system-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .system-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .system-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2cbf 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .system-title .subtitle {
+            font-size: 9px;
+            color: rgba(224, 230, 237, 0.6);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .system-status {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00ff41;
+            box-shadow: 0 0 6px #00ff41;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 主容器 - 左右布局 */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 15px;
+            max-width: 1920px;
+            margin: 0 auto;
+            height: calc(100vh - 100px);
+        }
+
+        /* 左侧：仿真区域 */
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        /* 仿真面板 */
+        .sim-panel {
+            background: rgba(26, 29, 41, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: rgba(0, 212, 255, 0.05);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-icon {
+            width: 28px;
+            height: 28px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .sim-panel:first-child .panel-icon {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: rgba(255, 152, 0, 0.3);
+            color: #ff9800;
+        }
+
+        .sim-panel:nth-child(2) .panel-icon {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+        }
+
+        .panel-title h2 {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-title .label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .simulation-area .sim-panel:first-child .panel-title .label {
+            color: rgba(255, 152, 0, 0.7);
+        }
+
+        .simulation-area .sim-panel:nth-child(2) .panel-title .label {
+            color: rgba(0, 212, 255, 0.7);
+        }
+
+        .panel-metrics {
+            display: flex;
+            gap: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 10px;
+        }
+
+        .panel-metrics .metric {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .panel-metrics .metric-label {
+            color: rgba(224, 230, 237, 0.5);
+        }
+
+        .panel-metrics .metric-value {
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .panel-canvas {
+            padding: 15px;
+            background: rgba(15, 20, 25, 0.5);
+            position: relative;
+        }
+
+        .canvas-placeholder {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.03) 0%, rgba(123, 44, 191, 0.03) 100%);
+            border: 1px dashed rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(224, 230, 237, 0.3);
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        /* 控制面板 - 紧贴在仿真下方 */
+        .control-panel {
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 16px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #0f1419;
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .btn-danger {
+            background: rgba(255, 82, 82, 0.1);
+            color: #ff5252;
+            border: 1px solid rgba(255, 82, 82, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 82, 82, 0.2);
+            border-color: rgba(255, 82, 82, 0.5);
+        }
+
+        .control-slider {
+            margin-top: 12px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 10px;
+            color: rgba(224, 230, 237, 0.7);
+        }
+
+        .slider-value {
+            font-family: 'Roboto Mono', monospace;
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00d4ff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+        }
+
+        /* 右侧：数据面板 */
+        .data-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .data-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .data-panel::-webkit-scrollbar-track {
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 2px;
+        }
+
+        .data-panel::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        /* 性能指标卡片 */
+        .metric-card {
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-card-header {
+            font-size: 9px;
+            color: rgba(224, 230, 237, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .metric-comparison {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            background: rgba(15, 20, 25, 0.5);
+            border-radius: 6px;
+            border-left: 3px solid transparent;
+        }
+
+        .metric-row.traditional {
+            border-left-color: #ff9800;
+        }
+
+        .metric-row.fsar {
+            border-left-color: #00d4ff;
+        }
+
+        .metric-row-label {
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .metric-row.traditional .metric-row-label {
+            color: #ff9800;
+        }
+
+        .metric-row.fsar .metric-row-label {
+            color: #00d4ff;
+        }
+
+        .metric-row-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .metric-row.traditional .metric-row-value {
+            color: #ff9800;
+        }
+
+        .metric-row.fsar .metric-row-value {
+            color: #00d4ff;
+        }
+
+        .metric-row-unit {
+            font-size: 9px;
+            color: rgba(224, 230, 237, 0.5);
+            margin-left: 3px;
+        }
+
+        /* 状态指示器 */
+        .status-card {
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .status-item-card {
+            padding: 6px;
+            background: rgba(15, 20, 25, 0.5);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .status-item-label {
+            font-size: 8px;
+            color: rgba(224, 230, 237, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .status-item-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        /* 图例 */
+        .legend-card {
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9px;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 9px;
+            border-radius: 2px;
+        }
+
+        .legend-label {
+            color: rgba(224, 230, 237, 0.7);
+        }
+
+        /* 响应式 */
+        @media (max-width: 1400px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .data-panel {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部系统栏 -->
+    <div class="system-header">
+        <div class="system-title">
+            <h1>FSAR</h1>
+            <div>
+                <div class="subtitle">Fluid Separation & Active Relief</div>
+                <div class="subtitle" style="margin-top: 2px;">流体隔离与主动泄压技术</div>
+            </div>
+        </div>
+        <div class="system-status">
+            <div class="status-item">
+                <div class="status-dot"></div>
+                <span>SYSTEM ONLINE</span>
+            </div>
+            <div class="status-item">
+                <span>FRAME: <span style="color: #00d4ff;">0</span></span>
+            </div>
+            <div class="status-item">
+                <span>v2.3-L</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="main-container">
+        <!-- 左侧：仿真区域 -->
+        <div class="simulation-area">
+            <!-- 传统结构仿真 -->
+            <div class="sim-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-icon">▼</div>
+                        <div>
+                            <div class="label" style="color: #ff9800;">Baseline / 对照组</div>
+                            <h2 style="color: #ff9800;">Conventional Merge Structure / 传统合流结构</h2>
+                        </div>
+                    </div>
+                    <div class="panel-metrics">
+                        <div class="metric">
+                            <span class="metric-label" style="color: rgba(255, 152, 0, 0.7);">STATUS / 状态:</span>
+                            <span class="metric-value" style="color: #ff9800;">RUNNING / 运行中</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label" style="color: rgba(255, 152, 0, 0.7);">FPS / 帧率:</span>
+                            <span class="metric-value" style="color: #ff9800;">60</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-canvas">
+                    <div class="canvas-placeholder">[ SIMULATION CANVAS - 1100 × 110 px ]</div>
+                </div>
+            </div>
+
+            <!-- FSAR结构仿真 -->
+            <div class="sim-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-icon">▼</div>
+                        <div>
+                            <div class="label" style="color: #00d4ff;">Optimized / 优化方案</div>
+                            <h2 style="color: #00d4ff;">FSAR Structure / FSAR结构 (Patent CN202311836940.X)</h2>
+                        </div>
+                    </div>
+                    <div class="panel-metrics">
+                        <div class="metric">
+                            <span class="metric-label" style="color: rgba(0, 212, 255, 0.7);">STATUS / 状态:</span>
+                            <span class="metric-value" style="color: #00d4ff;">RUNNING / 运行中</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label" style="color: rgba(0, 212, 255, 0.7);">FPS / 帧率:</span>
+                            <span class="metric-value" style="color: #00d4ff;">60</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-canvas">
+                    <div class="canvas-placeholder">[ SIMULATION CANVAS - 1100 × 110 px ]</div>
+                </div>
+            </div>
+
+            <!-- 控制面板 - 紧贴在仿真下方 -->
+            <div class="control-panel">
+                <div class="control-header">⚙ Simulation Controls / 仿真控制</div>
+                <div class="control-buttons">
+                    <button class="btn btn-primary">▶ Start / 开始</button>
+                    <button class="btn btn-secondary">⏸ Pause / 暂停</button>
+                    <button class="btn btn-danger">⏹ Reset / 重置</button>
+                </div>
+                <div class="control-slider">
+                    <div class="slider-label">
+                        <span>Traffic Flow Rate / 交通流量</span>
+                        <span class="slider-value">3000 pcu/h</span>
+                    </div>
+                    <input type="range" min="2000" max="6000" value="3000" step="100">
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：数据面板 -->
+        <div class="data-panel">
+            <!-- 平均速度 -->
+            <div class="metric-card">
+                <div class="metric-card-header">Average Speed / 平均速度</div>
+                <div class="metric-comparison">
+                    <div class="metric-row traditional">
+                        <span class="metric-row-label">TRAD</span>
+                        <div>
+                            <span class="metric-row-value">44.2</span>
+                            <span class="metric-row-unit">km/h</span>
+                        </div>
+                    </div>
+                    <div class="metric-row fsar">
+                        <span class="metric-row-label">FSAR</span>
+                        <div>
+                            <span class="metric-row-value">51.8</span>
+                            <span class="metric-row-unit">km/h</span>
+                            <span style="font-size: 11px; color: #2ecc71; margin-left: 8px; font-weight: 600;">+17.2%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 停车次数 -->
+            <div class="metric-card">
+                <div class="metric-card-header">Stop Count / 停车次数 (per vehicle / 每车)</div>
+                <div class="metric-comparison">
+                    <div class="metric-row traditional">
+                        <span class="metric-row-label">TRAD</span>
+                        <div>
+                            <span class="metric-row-value">9.85</span>
+                            <span class="metric-row-unit">times</span>
+                        </div>
+                    </div>
+                    <div class="metric-row fsar">
+                        <span class="metric-row-label">FSAR</span>
+                        <div>
+                            <span class="metric-row-value">0.12</span>
+                            <span class="metric-row-unit">times</span>
+                            <span style="font-size: 11px; color: #2ecc71; margin-left: 8px; font-weight: 600;">-98.8%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 通过量 -->
+            <div class="metric-card">
+                <div class="metric-card-header">Throughput / 通过量</div>
+                <div class="metric-comparison">
+                    <div class="metric-row traditional">
+                        <span class="metric-row-label">TRAD</span>
+                        <div>
+                            <span class="metric-row-value">4104</span>
+                            <span class="metric-row-unit">pcu/h</span>
+                        </div>
+                    </div>
+                    <div class="metric-row fsar">
+                        <span class="metric-row-label">FSAR</span>
+                        <div>
+                            <span class="metric-row-value">4980</span>
+                            <span class="metric-row-unit">pcu/h</span>
+                            <span style="font-size: 11px; color: #2ecc71; margin-left: 8px; font-weight: 600;">+21.3%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 运行状态 -->
+            <div class="status-card">
+                <div class="metric-card-header">System Status / 系统状态</div>
+                <div class="status-grid">
+                    <div class="status-item-card">
+                        <div class="status-item-label">Trad Status / 传统状态</div>
+                        <div class="status-item-value" style="color: #ff9800;">拥堵</div>
+                    </div>
+                    <div class="status-item-card">
+                        <div class="status-item-label">FSAR Status / FSAR状态</div>
+                        <div class="status-item-value" style="color: #00d4ff;">层流</div>
+                    </div>
+                    <div class="status-item-card">
+                        <div class="status-item-label">Vehicles / 车辆数</div>
+                        <div class="status-item-value">248</div>
+                    </div>
+                    <div class="status-item-card">
+                        <div class="status-item-label">Relief Rate / 泄压率</div>
+                        <div class="status-item-value">4.8%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图例 -->
+            <div class="legend-card">
+                <div class="metric-card-header">Legend / 图例</div>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3498db;"></div>
+                        <span class="legend-label">Main Flow / 主线车流</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e74c3c;"></div>
+                        <span class="legend-label">Ramp Flow / 匝道车流</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #2ecc71;"></div>
+                        <span class="legend-label">Exit Flow / 出口车流</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #9b59b6;"></div>
+                        <span class="legend-label">Isolation Zone / 隔离区</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

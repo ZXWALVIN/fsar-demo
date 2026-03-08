@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSAR 技术信息图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            padding: 40px;
+        }
+
+        .page {
+            background: #fff;
+            max-width: 1200px;
+            margin: 0 auto 60px;
+            padding: 60px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        /* 页面1：问题痛点 */
+        .page-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .page-title h1 {
+            font-size: 2.5em;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+        }
+
+        .page-title .subtitle {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .problem-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .problem-visual {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            padding: 30px;
+            position: relative;
+            min-height: 300px;
+        }
+
+        .road-diagram {
+            position: relative;
+            height: 200px;
+            margin-top: 20px;
+        }
+
+        .road-main {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: #34495e;
+            transform: translateY(-50%);
+            border-radius: 4px;
+        }
+
+        .road-lane {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: repeating-linear-gradient(90deg, #fff 0, #fff 20px, transparent 20px, transparent 40px);
+        }
+
+        .road-ramp {
+            position: absolute;
+            bottom: 0;
+            right: 30%;
+            width: 60px;
+            height: 100px;
+            background: #34495e;
+            transform: skewX(-20deg);
+            border-radius: 4px;
+        }
+
+        .conflict-zone {
+            position: absolute;
+            top: 50%;
+            right: 25%;
+            width: 100px;
+            height: 60px;
+            background: rgba(231, 76, 60, 0.4);
+            border: 3px dashed #e74c3c;
+            border-radius: 8px;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .conflict-zone span {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .arrows {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .arrow-main {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3498db;
+            font-size: 2em;
+        }
+
+        .arrow-ramp {
+            position: absolute;
+            right: 35%;
+            bottom: 30px;
+            color: #e74c3c;
+            font-size: 1.5em;
+            transform: rotate(-45deg);
+        }
+
+        .problem-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .problem-item {
+            background: #fff5f5;
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 12px 12px 0;
+        }
+
+        .problem-item h3 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .problem-item p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* 数据展示 */
+        .data-highlight {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: #fff;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .data-highlight h3 {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .data-number {
+            font-size: 4em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .data-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* 页面2：解决方案 */
+        .solution-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .solution-header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .mechanism-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .mechanism-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: #fff;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .mechanism-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .mechanism-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+        }
+
+        .mechanism-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .mechanism-card p {
+            opacity: 0.9;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        /* FSAR结构图 */
+        .fsar-diagram {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 50px;
+        }
+
+        .fsar-diagram h3 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5em;
+        }
+
+        .diagram-container {
+            position: relative;
+            height: 250px;
+            background: #0f0f23;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .fsar-road {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: #2c3e50;
+            transform: translateY(-50%);
+        }
+
+        .fsar-lanes {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+        }
+
+        .fsar-lane-line {
+            height: 2px;
+            background: repeating-linear-gradient(90deg, #fff 0, #fff 15px, transparent 15px, transparent 30px);
+            margin: 32px 0;
+        }
+
+        .vacuum-zone {
+            position: absolute;
+            top: 50%;
+            left: 30%;
+            width: 200px;
+            height: 35px;
+            background:
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(155, 89, 182, 0.3),
+                    rgba(155, 89, 182, 0.3) 10px,
+                    rgba(155, 89, 182, 0.6) 10px,
+                    rgba(155, 89, 182, 0.6) 20px
+                );
+            border: 3px solid #9b59b6;
+            border-radius: 4px;
+            transform: translateY(15px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vacuum-zone span {
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .exit-ramp {
+            position: absolute;
+            top: 50%;
+            left: 20%;
+            width: 80px;
+            height: 50px;
+            background: #2c3e50;
+            transform: translateY(-50%) skewY(-15deg);
+            transform-origin: left center;
+            border-radius: 4px;
+        }
+
+        .entry-ramp {
+            position: absolute;
+            top: 50%;
+            right: 15%;
+            width: 80px;
+            height: 50px;
+            background: #2c3e50;
+            transform: translateY(-50%) skewY(15deg);
+            transform-origin: right center;
+            border-radius: 4px;
+        }
+
+        .diagram-labels {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            color: #aaa;
+        }
+
+        .diagram-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .label-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* 页面3：效果对比 */
+        .comparison-section {
+            margin-bottom: 50px;
+        }
+
+        .comparison-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .comparison-header h1 {
+            font-size: 2.5em;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .comparison-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: 2px solid #eee;
+            transition: all 0.3s;
+        }
+
+        .comparison-card:hover {
+            border-color: #4ecdc4;
+            transform: translateY(-5px);
+        }
+
+        .comparison-card .metric-name {
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+        }
+
+        .comparison-card .before-after {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .comparison-card .before {
+            color: #e74c3c;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .comparison-card .arrow {
+            color: #999;
+            font-size: 1.2em;
+        }
+
+        .comparison-card .after {
+            color: #4ecdc4;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .comparison-card .improvement {
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        /* 核心价值 */
+        .value-proposition {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 50px;
+            color: #fff;
+            text-align: center;
+        }
+
+        .value-proposition h2 {
+            font-size: 2em;
+            margin-bottom: 30px;
+        }
+
+        .value-stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+        }
+
+        .value-stat {
+            text-align: center;
+        }
+
+        .value-stat .number {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .value-stat .label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* 流程图 */
+        .process-flow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .process-step {
+            background: #fff;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 20px 30px;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .process-step .step-num {
+            background: #667eea;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+
+        .process-step .step-title {
+            color: #1a1a2e;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .process-step .step-desc {
+            color: #666;
+            font-size: 0.85em;
+        }
+
+        .process-arrow {
+            color: #667eea;
+            font-size: 1.5em;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .footer p {
+            margin-bottom: 10px;
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            .page {
+                box-shadow: none;
+                page-break-after: always;
+                margin: 0;
+                padding: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面1：问题痛点 -->
+    <div class="page">
+        <div class="page-title">
+            <h1>城市快速路汇流区：交通拥堵的顽疾</h1>
+            <p class="subtitle">传统方案为何无法根治？</p>
+        </div>
+
+        <div class="problem-section">
+            <div class="problem-visual">
+                <h4 style="color: #fff; margin-bottom: 10px;">传统汇流结构示意</h4>
+                <div class="road-diagram">
+                    <div class="road-main">
+                        <div class="road-lane" style="top: 33%;"></div>
+                        <div class="road-lane" style="top: 66%;"></div>
+                    </div>
+                    <div class="road-ramp"></div>
+                    <div class="conflict-zone">
+                        <span>冲突区</span>
+                    </div>
+                    <div style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #3498db; font-size: 1.5em;">→→→</div>
+                    <div style="position: absolute; right: 35%; bottom: 50px; color: #e74c3c; font-size: 1.2em; transform: rotate(-30deg);">↗</div>
+                </div>
+                <div style="color: #aaa; font-size: 0.9em; margin-top: 20px;">
+                    <span style="color: #3498db;">●</span> 主线高速车流 &nbsp;&nbsp;
+                    <span style="color: #e74c3c;">●</span> 匝道低速车流
+                </div>
+            </div>
+
+            <div class="problem-text">
+                <div class="problem-item">
+                    <h3>Y型冲突不可避免</h3>
+                    <p>高速主线车流与低速匝道车流在同一空间强制混合，产生剧烈的横向剪切与交织紊流。</p>
+                </div>
+                <div class="problem-item">
+                    <h3>通行能力降级（Capacity Drop）</h3>
+                    <p>一旦触发拥堵，瓶颈处的实际通行能力将下降10%-20%，道路"吞噬"了自身的服务能力。</p>
+                </div>
+                <div class="problem-item">
+                    <h3>传统方案只是"管理混乱"</h3>
+                    <p>加宽车道、匝道信号灯等措施本质上是在保留冲突的前提下降低影响，无法根除问题。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-highlight">
+            <h3>传统结构在高峰期的典型表现</h3>
+            <div style="display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;">
+                <div>
+                    <div class="data-number">9.85</div>
+                    <div class="data-label">次/车 平均停车次数</div>
+                </div>
+                <div>
+                    <div class="data-number">44</div>
+                    <div class="data-label">km/h 平均车速</div>
+                </div>
+                <div>
+                    <div class="data-number">-20%</div>
+                    <div class="data-label">通行能力降级</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页面2：解决方案 -->
+    <div class="page">
+        <div class="solution-header">
+            <h1>FSAR：流体隔离与主动泄压</h1>
+            <p style="color: #666; font-size: 1.2em;">从"管理紊流"到"消除紊流"的范式转移</p>
+        </div>
+
+        <div class="mechanism-grid">
+            <div class="mechanism-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="mechanism-icon">①</div>
+                <h3>拓扑逆序</h3>
+                <p>打破传统"先入后出"布局，将出匝道设置在入匝道上游。先释放部分车流，再接纳新车流。</p>
+            </div>
+            <div class="mechanism-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="mechanism-icon">②</div>
+                <h3>真空隔离区</h3>
+                <p>在出入口之间设置物理隔离的"真空区"，最外侧车道不可通行，彻底切断横向干扰。</p>
+            </div>
+            <div class="mechanism-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="mechanism-icon">③</div>
+                <h3>主动泄压</h3>
+                <p>通过电子变道线动态控制，在上游提前分拣车流，实现可控的"减压阀"功能。</p>
+            </div>
+        </div>
+
+        <div class="fsar-diagram">
+            <h3>FSAR 结构示意图</h3>
+            <div class="diagram-container">
+                <div class="fsar-road">
+                    <div class="fsar-lanes">
+                        <div class="fsar-lane-line"></div>
+                        <div class="fsar-lane-line"></div>
+                    </div>
+                </div>
+                <div class="vacuum-zone">
+                    <span>真空隔离区</span>
+                </div>
+                <div class="exit-ramp"></div>
+                <div class="entry-ramp"></div>
+                <div style="position: absolute; left: 18%; top: 35%; color: #2ecc71; font-size: 0.9em; font-weight: bold;">出匝道</div>
+                <div style="position: absolute; right: 12%; top: 35%; color: #e74c3c; font-size: 0.9em; font-weight: bold;">入匝道</div>
+                <div style="position: absolute; left: 5%; top: 50%; transform: translateY(-50%); color: #3498db; font-size: 1.5em;">→→→</div>
+                <div style="position: absolute; left: 10%; top: 25%; color: #00d4ff; font-size: 0.8em;">电子变道线</div>
+            </div>
+            <div class="diagram-labels">
+                <div class="diagram-label">
+                    <div class="label-dot" style="background: #9b59b6;"></div>
+                    <span>真空隔离区（物理隔离）</span>
+                </div>
+                <div class="diagram-label">
+                    <div class="label-dot" style="background: #2ecc71;"></div>
+                    <span>先出（主动泄压）</span>
+                </div>
+                <div class="diagram-label">
+                    <div class="label-dot" style="background: #e74c3c;"></div>
+                    <span>后入（无冲突汇入）</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="process-flow">
+            <div class="process-step">
+                <div class="step-num">1</div>
+                <div class="step-title">分拣区</div>
+                <div class="step-desc">电子变道线引导</div>
+            </div>
+            <div class="process-arrow">→</div>
+            <div class="process-step">
+                <div class="step-num">2</div>
+                <div class="step-title">主动泄压</div>
+                <div class="step-desc">部分车流驶离</div>
+            </div>
+            <div class="process-arrow">→</div>
+            <div class="process-step">
+                <div class="step-num">3</div>
+                <div class="step-title">真空隔离</div>
+                <div class="step-desc">切断横向干扰</div>
+            </div>
+            <div class="process-arrow">→</div>
+            <div class="process-step">
+                <div class="step-num">4</div>
+                <div class="step-title">无冲突汇入</div>
+                <div class="step-desc">匝道车辆顺畅进入</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页面3：效果对比 -->
+    <div class="page">
+        <div class="comparison-header">
+            <h1>实证效果：VISSIM 高精度仿真验证</h1>
+            <p style="color: #666;">高峰期工况（主线 4800 pcu/h，匝道 1300 pcu/h）</p>
+        </div>
+
+        <div class="comparison-grid">
+            <div class="comparison-card">
+                <div class="metric-name">下游流量</div>
+                <div class="before-after">
+                    <span class="before">4104</span>
+                    <span class="arrow">→</span>
+                    <span class="after">4980</span>
+                </div>
+                <div class="improvement">+21%</div>
+            </div>
+            <div class="comparison-card">
+                <div class="metric-name">平均车速</div>
+                <div class="before-after">
+                    <span class="before">44</span>
+                    <span class="arrow">→</span>
+                    <span class="after">51</span>
+                </div>
+                <div class="improvement">+17%</div>
+            </div>
+            <div class="comparison-card">
+                <div class="metric-name">停车次数</div>
+                <div class="before-after">
+                    <span class="before">9.85</span>
+                    <span class="arrow">→</span>
+                    <span class="after">0.12</span>
+                </div>
+                <div class="improvement">-98.8%</div>
+            </div>
+            <div class="comparison-card">
+                <div class="metric-name">净牺牲率</div>
+                <div class="before-after">
+                    <span class="before">-</span>
+                    <span class="arrow">→</span>
+                    <span class="after">4.8%</span>
+                </div>
+                <div class="improvement">1:4.86</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 50px;">
+            <h3 style="text-align: center; color: #1a1a2e; margin-bottom: 30px;">极限工况下的"相变"效应（主线 5700 pcu/h）</h3>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <div class="metric-name">平均车速</div>
+                    <div class="before-after">
+                        <span class="before">16.8</span>
+                        <span class="arrow">→</span>
+                        <span class="after">45.2</span>
+                    </div>
+                    <div class="improvement">+170%</div>
+                </div>
+                <div class="comparison-card">
+                    <div class="metric-name">停车次数</div>
+                    <div class="before-after">
+                        <span class="before">9.85</span>
+                        <span class="arrow">→</span>
+                        <span class="after">0.12</span>
+                    </div>
+                    <div class="improvement">-98.8%</div>
+                </div>
+                <div class="comparison-card">
+                    <div class="metric-name">运行状态</div>
+                    <div class="before-after">
+                        <span class="before" style="font-size: 1.2em;">崩溃</span>
+                        <span class="arrow">→</span>
+                        <span class="after" style="font-size: 1.2em;">层流</span>
+                    </div>
+                    <div class="improvement">相变</div>
+                </div>
+                <div class="comparison-card">
+                    <div class="metric-name">系统稳定性</div>
+                    <div class="before-after">
+                        <span class="before" style="font-size: 1.2em;">紊流</span>
+                        <span class="arrow">→</span>
+                        <span class="after" style="font-size: 1.2em;">零停车</span>
+                    </div>
+                    <div class="improvement">突破</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="value-proposition" style="margin-top: 50px;">
+            <h2>核心价值：帕累托改进</h2>
+            <p style="opacity: 0.9; margin-bottom: 30px;">以极小的边界代价换取宏观流体稳定性</p>
+            <div class="value-stats">
+                <div class="value-stat">
+                    <div class="number">4.8%</div>
+                    <div class="label">净牺牲率</div>
+                </div>
+                <div class="value-stat">
+                    <div class="number">1:4.86</div>
+                    <div class="label">收益比</div>
+                </div>
+                <div class="value-stat">
+                    <div class="number">+1224</div>
+                    <div class="label">小时增量（pcu/h）</div>
+                </div>
+            </div>
+            <p style="margin-top: 30px; opacity: 0.85;">
+                每牺牲1辆车通过，换取约4.86辆的下游通行恢复
+            </p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>基于国家发明专利 CN202311836940.X</p>
+        <p>杭州舜杰人工智能科技有限公司</p>
+    </div>
+</body>
+</html>

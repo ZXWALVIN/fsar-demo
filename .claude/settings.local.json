@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat /private/tmp/claude-501/-Users-alvinzhang-CC-code/tasks/a50b9c8f22a5fbef7.output | python3 -c \"\nimport sys, json\ndata = sys.stdin.read\\(\\)\n# Split by newlines and find assistant messages\nfor line in data.strip\\(\\).split\\('\\\\n'\\):\n    try:\n        obj = json.loads\\(line\\)\n        if obj.get\\('type'\\) == 'assistant' and 'message' in obj:\n            for block in obj['message'].get\\('content', []\\):\n                if isinstance\\(block, dict\\) and block.get\\('type'\\) == 'text':\n                    print\\(block['text']\\)\n                    print\\('---SEPARATOR---'\\)\n    except:\n        pass\n\" 2>/dev/null | head -3000)",
+      "mcp__ide__getDiagnostics",
+      "Bash(env)",
+      "Bash(security find-generic-password -s \"claude\" -a \"\")",
+      "Bash(ls -la ~/.claude/credentials*)",
+      "Bash(cat ~/.claude/credentials*)",
+      "Bash(cat ~/.config/claude/*)",
+      "Bash(defaults read com.anthropic.claude)",
+      "WebFetch(domain:www.bbc.com)",
+      "WebFetch(domain:www.reuters.com)",
+      "Bash(npx skills find)",
+      "Bash(npx skills find --help)",
+      "Bash(npx skills find react)",
+      "Bash(npx skills find testing)",
+      "Bash(npx skills find design)",
+      "Bash(npx skills find youtube)",
+      "WebFetch(domain:github.com)",
+      "mcp__brave__brave_web_search"
+    ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
+  }
+}

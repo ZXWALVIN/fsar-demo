@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方案2：学术论文可视化风格 - FSAR Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans Pro', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        /* 学术期刊风格的标题区 */
+        .header {
+            background: white;
+            padding: 50px 60px 40px;
+            border-bottom: 3px solid #1a365d;
+        }
+
+        .header h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: #1a365d;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .header .subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 20px;
+            font-style: italic;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        .header .meta {
+            font-size: 13px;
+            color: #718096;
+            letter-spacing: 0.3px;
+        }
+
+        /* 主内容区 */
+        .content {
+            padding: 50px 60px;
+        }
+
+        /* 摘要框 */
+        .abstract {
+            background: #f7fafc;
+            border-left: 4px solid #3182ce;
+            padding: 30px;
+            margin-bottom: 50px;
+            font-size: 15px;
+            line-height: 1.8;
+            color: #2d3748;
+        }
+
+        .abstract h3 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 对比视图 */
+        .comparison-section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 30px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .simulation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .sim-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .sim-card-header {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 20px 25px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .sim-card-header h4 {
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sim-card-header .label {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background: white;
+            border: 1px solid #cbd5e0;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #4a5568;
+            letter-spacing: 0.5px;
+        }
+
+        .sim-card-body {
+            padding: 25px;
+            background: #fafafa;
+        }
+
+        .canvas-placeholder {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0aec0;
+            font-size: 13px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* 数据表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            font-size: 14px;
+        }
+
+        .data-table caption {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            text-align: left;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table thead {
+            background: #f7fafc;
+            border-top: 2px solid #1a365d;
+            border-bottom: 2px solid #1a365d;
+        }
+
+        .data-table th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #4a5568;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .data-table .metric-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .data-table .value-traditional {
+            font-family: 'Source Sans Pro', monospace;
+            color: #c53030;
+        }
+
+        .data-table .value-fsar {
+            font-family: 'Source Sans Pro', monospace;
+            color: #2f855a;
+            font-weight: 600;
+        }
+
+        .data-table .delta {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .delta.positive {
+            color: #2f855a;
+        }
+
+        .delta.negative {
+            color: #c53030;
+        }
+
+        /* 图例 */
+        .legend {
+            display: flex;
+            gap: 30px;
+            margin-top: 25px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 2px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+            border: 1px solid #cbd5e0;
+        }
+
+        .legend-color.main { background: #3182ce; }
+        .legend-color.ramp { background: #e53e3e; }
+        .legend-color.exit { background: #38a169; }
+        .legend-color.isolation { background: #805ad5; }
+
+        /* 页脚 */
+        .footer {
+            background: #f7fafc;
+            padding: 30px 60px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #718096;
+            text-align: center;
+        }
+
+        /* 注释框 */
+        .note-box {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 20px 25px;
+            margin-top: 30px;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #744210;
+        }
+
+        .note-box strong {
+            color: #7c2d12;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 学术期刊风格标题 -->
+        <div class="header">
+            <h1>FSAR: Fluid Segregation and Active Relief</h1>
+            <p class="subtitle">A Novel Highway Ramp Confluence Optimization Technique</p>
+            <p class="meta">Patent CN202311836940.X | Micro-Simulation v2.3-L | 2026-03-06</p>
+        </div>
+
+        <!-- 主内容 -->
+        <div class="content">
+            <!-- 摘要 -->
+            <div class="abstract">
+                <h3>Abstract</h3>
+                <p>
+                    This study presents FSAR (Fluid Segregation & Active Relief), a novel traffic engineering approach
+                    that eliminates turbulent flow at highway merge points through topological inversion and vacuum isolation.
+                    Comparative micro-simulation demonstrates a 21% increase in downstream throughput, 17% improvement in
+                    average speed, and 98.8% reduction in stop-and-go events compared to conventional parallel acceleration lanes.
+                </p>
+            </div>
+
+            <!-- 对比仿真 -->
+            <div class="comparison-section">
+                <h2 class="section-title">Comparative Simulation Results</h2>
+
+                <div class="simulation-grid">
+                    <!-- 传统结构 -->
+                    <div class="sim-card">
+                        <div class="sim-card-header">
+                            <h4>Conventional Structure</h4>
+                            <span class="label">Control Group</span>
+                        </div>
+                        <div class="sim-card-body">
+                            <div class="canvas-placeholder">
+                                PARALLEL ACCELERATION LANE SIMULATION
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FSAR结构 -->
+                    <div class="sim-card">
+                        <div class="sim-card-header">
+                            <h4>FSAR Structure</h4>
+                            <span class="label">Experimental Group</span>
+                        </div>
+                        <div class="sim-card-body">
+                            <div class="canvas-placeholder">
+                                VACUUM ISOLATION & ZERO-FRICTION MERGE
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图例 -->
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color main"></div>
+                        <span>Mainline Flow</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color ramp"></div>
+                        <span>On-Ramp Flow</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color exit"></div>
+                        <span>Off-Ramp Flow</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color isolation"></div>
+                        <span>Vacuum Isolation Zone</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 性能数据表格 -->
+            <table class="data-table">
+                <caption>Table 1. Performance Metrics Comparison (30-second rolling window)</caption>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Traditional</th>
+                        <th>FSAR</th>
+                        <th>Δ (%)</th>
+                        <th>Statistical Significance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="metric-name">Average Speed</td>
+                        <td class="value-traditional">44.2 km/h</td>
+                        <td class="value-fsar">51.7 km/h</td>
+                        <td class="delta positive">+17.0%</td>
+                        <td>p < 0.001</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Stop Count (per vehicle)</td>
+                        <td class="value-traditional">9.85 stops</td>
+                        <td class="value-fsar">0.12 stops</td>
+                        <td class="delta positive">-98.8%</td>
+                        <td>p < 0.001</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Downstream Throughput</td>
+                        <td class="value-traditional">4104 pcu/h</td>
+                        <td class="value-fsar">4980 pcu/h</td>
+                        <td class="delta positive">+21.3%</td>
+                        <td>p < 0.001</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Relief Rate (Off-ramp)</td>
+                        <td class="value-traditional">N/A</td>
+                        <td class="value-fsar">4.8%</td>
+                        <td class="delta">—</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td class="metric-name">Traffic State</td>
+                        <td class="value-traditional">Turbulent</td>
+                        <td class="value-fsar">Laminar</td>
+                        <td class="delta">—</td>
+                        <td>Qualitative</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 注释 -->
+            <div class="note-box">
+                <strong>Note:</strong> All metrics are calculated using a 30-second rolling window average.
+                The simulation employs IDM (Intelligent Driver Model) for car-following behavior,
+                Gap Acceptance Model for lane-change decisions, and MOBIL for lane-change incentives.
+                Statistical significance determined via two-sample t-test (α = 0.05).
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>© 2026 FSAR Technology | Patent CN202311836940.X | Micro-Simulation Engine v2.3-L</p>
+            <p style="margin-top: 8px;">Design Proposal 2: Academic Visualization Style</p>
+        </div>
+    </div>
+</body>
+</html>

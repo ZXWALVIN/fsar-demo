@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方案1：现代工程仪表盘风格 - FSAR Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+            color: #e8edf2;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        .design-note {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+        }
+
+        .design-note h3 {
+            color: #00d4ff;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .design-note p {
+            color: #a0b3c5;
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* 顶部标题区 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .header-left h1 {
+            font-size: 42px;
+            font-weight: 700;
+            color: #00d4ff;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .header-left .subtitle {
+            font-size: 14px;
+            color: #6b8299;
+            letter-spacing: 1px;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px solid rgba(46, 204, 113, 0.4);
+            border-radius: 20px;
+            color: #2ecc71;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .version {
+            font-size: 11px;
+            color: #4a5f7a;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* 仿真面板 */
+        .simulation-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .sim-panel {
+            background: rgba(26, 35, 50, 0.6);
+            border: 1px solid rgba(107, 130, 153, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            background: rgba(15, 20, 25, 0.8);
+            border-bottom: 1px solid rgba(107, 130, 153, 0.15);
+        }
+
+        .sim-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e8edf2;
+            letter-spacing: 0.5px;
+        }
+
+        .sim-title.traditional {
+            color: #ff9f43;
+        }
+
+        .sim-title.fsar {
+            color: #00d4ff;
+        }
+
+        .sim-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 11px;
+            font-family: 'Roboto Mono', monospace;
+            color: #6b8299;
+        }
+
+        .sim-canvas-area {
+            padding: 30px;
+            background: rgba(15, 20, 25, 0.4);
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .canvas-placeholder {
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(90deg,
+                rgba(107, 130, 153, 0.05) 0%,
+                rgba(107, 130, 153, 0.1) 50%,
+                rgba(107, 130, 153, 0.05) 100%);
+            border: 1px dashed rgba(107, 130, 153, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a5f7a;
+            font-size: 13px;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* 数据仪表盘 */
+        .metrics-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(26, 35, 50, 0.6);
+            border: 1px solid rgba(107, 130, 153, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-header {
+            font-size: 12px;
+            color: #6b8299;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .metric-comparison {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: #a0b3c5;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .metric-value.traditional {
+            color: #ff9f43;
+        }
+
+        .metric-value.fsar {
+            color: #00d4ff;
+        }
+
+        .metric-delta {
+            font-size: 11px;
+            color: #2ecc71;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        /* 对比图表区 */
+        .comparison-section {
+            background: rgba(26, 35, 50, 0.6);
+            border: 1px solid rgba(107, 130, 153, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .comparison-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e8edf2;
+            margin-bottom: 25px;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(180deg,
+                rgba(15, 20, 25, 0.6) 0%,
+                rgba(15, 20, 25, 0.3) 100%);
+            border: 1px solid rgba(107, 130, 153, 0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a5f7a;
+            font-size: 13px;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* 控制栏 */
+        .control-bar {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(107, 130, 153, 0.15);
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 6px;
+            color: #00d4ff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .control-btn.primary {
+            background: #00d4ff;
+            color: #0f1419;
+            border-color: #00d4ff;
+        }
+
+        .control-btn.primary:hover {
+            background: #00b8e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="design-note">
+        <h3>方案1：工程仪表盘</h3>
+        <p><strong>风格：</strong>专业交通监控中心<br>
+        <strong>特点：</strong>深色背景、精确数据网格、清晰对比<br>
+        <strong>适合：</strong>技术演示、工程评审</p>
+    </div>
+
+    <div class="container">
+        <!-- 顶部标题 -->
+        <div class="header">
+            <div class="header-left">
+                <h1>FSAR</h1>
+                <p class="subtitle">FLUID SEPARATION & ACTIVE RELIEF SYSTEM</p>
+            </div>
+            <div class="header-right">
+                <div class="status-badge">● SIMULATION ACTIVE</div>
+                <div class="version">v2.3-L | Build 20260306</div>
+            </div>
+        </div>
+
+        <!-- 仿真面板 -->
+        <div class="simulation-grid">
+            <div class="sim-panel">
+                <div class="sim-header">
+                    <div class="sim-title traditional">传统结构 Traditional Merge</div>
+                    <div class="sim-meta">
+                        <span>FPS: 60</span>
+                        <span>LAT: 16ms</span>
+                        <span>FRAME: 1847</span>
+                    </div>
+                </div>
+                <div class="sim-canvas-area">
+                    <div class="canvas-placeholder">[ 仿真画布区域 1100×110px ]</div>
+                </div>
+            </div>
+
+            <div class="sim-panel">
+                <div class="sim-header">
+                    <div class="sim-title fsar">FSAR结构 FSAR Merge</div>
+                    <div class="sim-meta">
+                        <span>FPS: 60</span>
+                        <span>LAT: 16ms</span>
+                        <span>FRAME: 1847</span>
+                    </div>
+                </div>
+                <div class="sim-canvas-area">
+                    <div class="canvas-placeholder">[ 仿真画布区域 1100×110px ]</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据仪表盘 -->
+        <div class="metrics-dashboard">
+            <div class="metric-card">
+                <div class="metric-header">平均速度 Avg Speed</div>
+                <div class="metric-comparison">
+                    <div class="metric-row">
+                        <span class="metric-label">Traditional</span>
+                        <span class="metric-value traditional">44.2 <span style="font-size: 16px; color: #6b8299;">km/h</span></span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">FSAR</span>
+                        <span class="metric-value fsar">51.8 <span style="font-size: 16px; color: #6b8299;">km/h</span>
+                        <span class="metric-delta">+17.2%</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">停车次数 Stop Count</div>
+                <div class="metric-comparison">
+                    <div class="metric-row">
+                        <span class="metric-label">Traditional</span>
+                        <span class="metric-value traditional">9.85 <span style="font-size: 16px; color: #6b8299;">次/车</span></span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">FSAR</span>
+                        <span class="metric-value fsar">0.12 <span style="font-size: 16px; color: #6b8299;">次/车</span>
+                        <span class="metric-delta">-98.8%</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">通行能力 Throughput</div>
+                <div class="metric-comparison">
+                    <div class="metric-row">
+                        <span class="metric-label">Traditional</span>
+                        <span class="metric-value traditional">4104 <span style="font-size: 16px; color: #6b8299;">pcu/h</span></span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">FSAR</span>
+                        <span class="metric-value fsar">4980 <span style="font-size: 16px; color: #6b8299;">pcu/h</span>
+                        <span class="metric-delta">+21.3%</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">运行状态 Status</div>
+                <div class="metric-comparison">
+                    <div class="metric-row">
+                        <span class="metric-label">Traditional</span>
+                        <span class="metric-value traditional" style="font-size: 20px;">紊流</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">FSAR</span>
+                        <span class="metric-value fsar" style="font-size: 20px;">层流</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 对比图表 -->
+        <div class="comparison-section">
+            <div class="comparison-title">性能对比分析 Performance Comparison</div>
+            <div class="chart-placeholder">[ 实时性能曲线图表区域 ]</div>
+
+            <div class="control-bar">
+                <button class="control-btn primary">开始仿真 START</button>
+                <button class="control-btn">暂停 PAUSE</button>
+                <button class="control-btn">重置 RESET</button>
+                <button class="control-btn">导出数据 EXPORT</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

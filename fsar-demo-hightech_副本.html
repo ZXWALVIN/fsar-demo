@@ -1,0 +1,3102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSAR :: 交通流体动力学仿真系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1d29 100%);
+            color: #e0e6ed;
+            min-height: 100vh;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        /* 顶部系统栏 */
+        .system-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .system-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .system-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2cbf 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .system-title .subtitle {
+            font-size: 9px;
+            color: rgba(224, 230, 237, 0.6);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .system-status {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00ff41;
+            box-shadow: 0 0 6px #00ff41;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 主容器 - 左右布局 */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 15px;
+            max-width: 1920px;
+            margin: 0 auto;
+            height: calc(100vh - 100px);
+        }
+
+        /* 左侧：仿真区域 */
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        /* 仿真面板 */
+        .sim-panel {
+            background: rgba(26, 29, 41, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: rgba(0, 212, 255, 0.05);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-icon {
+            width: 28px;
+            height: 28px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .sim-panel.traditional .panel-icon {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: rgba(255, 152, 0, 0.3);
+            color: #ff9800;
+        }
+
+        .sim-panel.fsar .panel-icon {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+        }
+
+        .panel-title h2 {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-title .label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sim-panel.traditional .panel-title .label {
+            color: rgba(255, 152, 0, 0.7);
+        }
+
+        .sim-panel.fsar .panel-title .label {
+            color: rgba(0, 212, 255, 0.7);
+        }
+
+        .panel-metrics {
+            display: flex;
+            gap: 12px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 10px;
+        }
+
+        .panel-metrics .metric {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .panel-metrics .metric-label {
+            color: rgba(224, 230, 237, 0.5);
+        }
+
+        .panel-metrics .metric-value {
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .sim-panel.traditional .panel-metrics .metric-value {
+            color: #ff9800;
+        }
+
+        .panel-canvas {
+            padding: 15px;
+            background: rgba(15, 20, 25, 0.5);
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 8px;
+        }
+
+        /* 控制面板 */
+        .control-panel {
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .control-left {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-legend {
+            background: rgba(15, 20, 25, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .legend-header {
+            font-size: 10px;
+            color: rgba(224, 230, 237, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .legend-items-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .legend-items-compact .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9px;
+        }
+
+        .legend-items-compact .legend-color {
+            width: 16px;
+            height: 8px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .legend-items-compact .legend-label {
+            color: rgba(224, 230, 237, 0.7);
+            line-height: 1.2;
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 16px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #0f1419;
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        .btn-danger {
+            background: rgba(255, 82, 82, 0.1);
+            color: #ff5252;
+            border: 1px solid rgba(255, 82, 82, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 82, 82, 0.2);
+            border-color: rgba(255, 82, 82, 0.5);
+        }
+
+        .control-slider {
+            margin-top: 12px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 10px;
+            color: rgba(224, 230, 237, 0.7);
+        }
+
+        .slider-value {
+            font-family: 'Roboto Mono', monospace;
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00d4ff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+        }
+
+        /* 右侧：数据面板 */
+        .data-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .data-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .data-panel::-webkit-scrollbar-track {
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 2px;
+        }
+
+        .data-panel::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        /* 性能指标卡片 */
+        .metric-card {
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-card-header {
+            font-size: 11px;
+            color: rgba(224, 230, 237, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .metric-comparison {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            background: rgba(15, 20, 25, 0.5);
+            border-radius: 6px;
+            border-left: 3px solid transparent;
+        }
+
+        .metric-row.traditional {
+            border-left-color: #ff9800;
+        }
+
+        .metric-row.fsar {
+            border-left-color: #00d4ff;
+        }
+
+        .metric-row-label {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .metric-row.traditional .metric-row-label {
+            color: #ff9800;
+        }
+
+        .metric-row.fsar .metric-row-label {
+            color: #00d4ff;
+        }
+
+        .metric-row-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .metric-row.traditional .metric-row-value {
+            color: #ff9800;
+        }
+
+        .metric-row.fsar .metric-row-value {
+            color: #00d4ff;
+        }
+
+        .metric-row-unit {
+            font-size: 9px;
+            color: rgba(224, 230, 237, 0.5);
+            margin-left: 3px;
+        }
+
+        /* 状态指示器 */
+        .status-card {
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .status-item-card {
+            padding: 6px;
+            background: rgba(15, 20, 25, 0.5);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .status-item-label {
+            font-size: 8px;
+            color: rgba(224, 230, 237, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .status-item-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        /* 图例 */
+        .legend-card {
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9px;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 9px;
+            border-radius: 2px;
+        }
+
+        .legend-label {
+            color: rgba(224, 230, 237, 0.7);
+        }
+
+        /* 响应式 */
+        @media (max-width: 1400px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .data-panel {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* 图例 */
+        }
+
+        /* 图例 */
+        .legend-card {
+            background: rgba(26, 29, 41, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 9px;
+        }
+
+        .legend-color {
+            width: 18px;
+            height: 9px;
+            border-radius: 2px;
+        }
+
+        .legend-label {
+            color: rgba(224, 230, 237, 0.7);
+        }
+
+        /* 响应式 */
+        @media (max-width: 1400px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .data-panel {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* 隐藏原有样式 */
+        .stats { display: none; }
+        .stats-comparison { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- 顶部系统栏 -->
+    <div class="system-header">
+        <div class="system-title">
+            <h1>FSAR</h1>
+            <div>
+                <div class="subtitle">Fluid Separation & Active Relief</div>
+                <div class="subtitle" style="margin-top: 2px;">流体隔离与主动泄压技术</div>
+            </div>
+        </div>
+        <div class="system-status">
+            <div class="status-item">
+                <div class="status-dot"></div>
+                <span>SYSTEM ONLINE</span>
+            </div>
+            <div class="status-item">
+                <span>FRAME: <span style="color: #00d4ff;" id="frameCounter">0</span></span>
+            </div>
+            <div class="status-item">
+                <span>v3.3-L</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="main-container">
+        <!-- 左侧：仿真区域 -->
+        <div class="simulation-area">
+            <!-- 传统结构仿真 -->
+            <div class="sim-panel traditional">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-icon">▼</div>
+                        <div>
+                            <div class="label" style="color: #ff9800;">Baseline / 对照组</div>
+                            <h2 style="color: #ff9800;">Conventional Merge Structure / 传统合流结构</h2>
+                        </div>
+                    </div>
+                    <div class="panel-metrics">
+                        <div class="metric">
+                            <span class="metric-label" style="color: rgba(255, 152, 0, 0.7);">STATUS / 状态:</span>
+                            <span class="metric-value" style="color: #ff9800;">RUNNING / 运行中</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label" style="color: rgba(255, 152, 0, 0.7);">FPS / 帧率:</span>
+                            <span class="metric-value" style="color: #ff9800;">60</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-canvas">
+                    <canvas id="traditionalCanvas" width="1100" height="150"></canvas>
+                </div>
+            </div>
+
+            <!-- FSAR结构仿真 -->
+            <div class="sim-panel fsar">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-icon">▼</div>
+                        <div>
+                            <div class="label" style="color: #00d4ff;">Optimized / 优化方案</div>
+                            <h2 style="color: #00d4ff;">FSAR Structure / FSAR结构 (Patent CN202311836940.X)</h2>
+                        </div>
+                    </div>
+                    <div class="panel-metrics">
+                        <div class="metric">
+                            <span class="metric-label" style="color: rgba(0, 212, 255, 0.7);">STATUS / 状态:</span>
+                            <span class="metric-value" style="color: #00d4ff;">RUNNING / 运行中</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label" style="color: rgba(0, 212, 255, 0.7);">FPS / 帧率:</span>
+                            <span class="metric-value" style="color: #00d4ff;">60</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-canvas">
+                    <canvas id="fsarCanvas" width="1100" height="150"></canvas>
+                </div>
+            </div>
+
+            <!-- 控制面板 -->
+            <div class="control-panel">
+                <div class="control-header">⚙ Simulation Controls / 仿真控制</div>
+
+                <!-- 新的Grid布局：左侧按钮+滑块，右侧图例 -->
+                <div class="control-grid">
+                    <!-- 左侧：按钮 + 滑块 -->
+                    <div class="control-left">
+                        <div class="control-buttons">
+                            <button class="btn btn-primary" id="startBtn">▶ Start / 开始</button>
+                            <button class="btn btn-danger" id="resetBtn">⏹ Reset / 重置</button>
+                        </div>
+                        <div class="control-slider">
+                            <div class="slider-label">
+                                <span>Traffic Flow Rate / 交通流量</span>
+                                <span class="slider-value"><span id="flowValue">4800</span> pcu/h</span>
+                            </div>
+                            <input type="range" id="flowRate" min="3000" max="5700" value="4800" step="100">
+                        </div>
+                    </div>
+
+                    <!-- 右侧：图例（从右侧边栏移动过来） -->
+                    <div class="control-legend">
+                        <div class="legend-header">Legend / 图例</div>
+                        <div class="legend-items-compact">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #3498db;"></div>
+                                <span class="legend-label">Main Flow / 主线车流</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #e74c3c;"></div>
+                                <span class="legend-label">Ramp Flow / 匝道车流</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #2ecc71;"></div>
+                                <span class="legend-label">Exit Flow / 出口车流</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #9b59b6;"></div>
+                                <span class="legend-label">Isolation Zone / 隔离区</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：数据面板 -->
+        <div class="data-panel">
+            <!-- 平均速度 -->
+            <div class="metric-card">
+                <div class="metric-card-header">Average Speed / 平均速度</div>
+                <div class="metric-comparison">
+                    <div class="metric-row traditional">
+                        <span class="metric-row-label">TRAD</span>
+                        <div>
+                            <span class="metric-row-value" id="tradSpeed">--</span>
+                            <span class="metric-row-unit">km/h</span>
+                        </div>
+                    </div>
+                    <div class="metric-row fsar">
+                        <span class="metric-row-label">FSAR</span>
+                        <div>
+                            <span class="metric-row-value" id="fsarSpeed">--</span>
+                            <span class="metric-row-unit">km/h</span>
+                            <span style="font-size: 11px; color: #2ecc71; margin-left: 8px; font-weight: 600;" id="speedDelta"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 停车次数 -->
+            <div class="metric-card">
+                <div class="metric-card-header">Stop Count / 停车次数 (per vehicle / 每车)</div>
+                <div class="metric-comparison">
+                    <div class="metric-row traditional">
+                        <span class="metric-row-label">TRAD</span>
+                        <div>
+                            <span class="metric-row-value" id="tradStops">--</span>
+                            <span class="metric-row-unit">times</span>
+                        </div>
+                    </div>
+                    <div class="metric-row fsar">
+                        <span class="metric-row-label">FSAR</span>
+                        <div>
+                            <span class="metric-row-value" id="fsarStops">--</span>
+                            <span class="metric-row-unit">times</span>
+                            <span style="font-size: 11px; color: #2ecc71; margin-left: 8px; font-weight: 600;" id="stopsDelta"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 通过量 -->
+            <div class="metric-card">
+                <div class="metric-card-header">Throughput / 通过量</div>
+                <div class="metric-comparison">
+                    <div class="metric-row traditional">
+                        <span class="metric-row-label">TRAD</span>
+                        <div>
+                            <span class="metric-row-value" id="tradFlow">0</span>
+                            <span class="metric-row-unit">pcu/h</span>
+                        </div>
+                    </div>
+                    <div class="metric-row fsar">
+                        <span class="metric-row-label">FSAR</span>
+                        <div>
+                            <span class="metric-row-value" id="fsarFlow">0</span>
+                            <span class="metric-row-unit">pcu/h</span>
+                            <span style="font-size: 11px; color: #2ecc71; margin-left: 8px; font-weight: 600;" id="flowDelta"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 运行状态 -->
+            <div class="status-card">
+                <div class="metric-card-header">System Status / 系统状态</div>
+                <div class="status-grid">
+                    <div class="status-item-card">
+                        <div class="status-item-label">Trad Status / 传统状态</div>
+                        <div class="status-item-value" style="color: #ff9800;" id="tradStatus">--</div>
+                    </div>
+                    <div class="status-item-card">
+                        <div class="status-item-label">FSAR Status / FSAR状态</div>
+                        <div class="status-item-value" style="color: #00d4ff;" id="fsarStatus">--</div>
+                    </div>
+                    <div class="status-item-card">
+                        <div class="status-item-label">Vehicles / 车辆数</div>
+                        <div class="status-item-value" id="vehicleCount">0</div>
+                    </div>
+                    <div class="status-item-card">
+                        <div class="status-item-label">Relief Rate / 泄压率</div>
+                        <div class="status-item-value" id="fsarRelief">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 帧计数器更新 (将在主循环中调用)
+        let displayFrameCount = 0;
+        function updateFrameCounter() {
+            displayFrameCount++;
+            if (displayFrameCount % 10 === 0) {
+                document.getElementById('frameCounter').textContent = displayFrameCount;
+            }
+        }
+        // ========== 配置参数 ==========
+        // v3.3-L: UI布局优化 — 移除无效暂停按钮，图例从右侧边栏移至控制面板，指标字体放大33%
+        //         主要改动：(1) 删除暂停按钮，控制按钮从3个减少到2个（Start + Reset）
+        //         (2) 图例重新定位到控制面板右侧，采用Grid布局（左侧按钮+滑块，右侧图例）
+        //         (3) 指标显示放大：数值15px→20px，标题9px→11px，标签10px→12px
+        //         目标：更简洁的控制面板，更高效的空间利用，更好的指标可读性
+        // v3.2-X: 排队触发变道增强 — 最外侧车道车辆使用标准避堵变道逻辑（基于MOBIL模型+个性化意愿），
+        //         移除1%概率限制，增加安全约束（远离冲突区），预期变道尝试率从1%提升至25-30%
+        // v3.1-X: 拥堵连续性优化（探索版）— 激活刹车波传播机制，优化传统结构拥堵可视化
+        //         主要改动：(1) 激活propagateBrakeWave()函数，在合流冲突和停车时触发
+        //         (2) 保守参数调优：reactionTime 12→8, aMax 0.018→0.022, T 45→38
+        //         (3) 软化防穿模系数：0.3→0.65, 0.5→0.75，减少人工间隙
+        //         (4) 减少启动延迟：10+random(15)→8+random(10)
+        //         目标：传统结构产生连续上游排队，消除碎片化拥堵区，FSAR结构保持不变
+        // v3.0.2-L: UI修正 — 删除所有旧CRT终端样式残留（500-790行），解决按钮样式被覆盖问题
+        // v3.0.1-L: UI修正 — 恢复按钮样式（text-transform: uppercase），确保开始按钮明亮可见
+        // v3.0-L: UI重构 — 采用工程仪表盘设计，左右分栏布局（仿真区+数据面板），
+        //         顶部系统栏显示状态，右侧紧凑数据卡片，色彩编码（橙色传统/蓝色FSAR），
+        //         单屏显示所有内容，强调动画演示核心
+        // v2.2-L: 入场加速优化 — 新车以40%速度入场，45帧内渐进加速到100%，
+        //         消除入口幽灵拥堵；扩大生成碰撞检查范围至60单位
+        // v2.1-L: 全等比缩放修正 — Y轴维度(canvasHeight/roadY/laneHeight/carWidth)
+        //         统一按0.611缩放，修复非对称缩放失真；预警区移至画面内
+        const CONFIG = {
+            // 画布尺寸（v3.0增大至150px高度，强调动画演示）
+            canvasWidth: 1100,
+            canvasHeight: 150,
+
+            // 缩放因子（用于将更长的道路压缩到相同画布）
+            scale: 0.611,  // 1100/1800 ≈ 0.611，将1800px的逻辑道路压缩到1100px画布
+
+            // 道路布局（合流区靠右，突出上游显示）
+            roadY: 45,           // 垂直居中（150/2 - 3*15/2 ≈ 45）
+            laneHeight: 15,
+            laneCount: 3,
+            carLength: 12,       // 车辆长度缩小（原20 * 0.611 ≈ 12）
+            carWidth: 7,
+
+            // 传统结构（逻辑坐标，按1.636倍扩展，渲染时会乘以scale压缩）
+            tradRampX: 1554,
+            tradRampLength: 100,
+            tradAccelLaneLength: 150,
+            tradAccelLaneStart: 1440,
+            tradDecelerationZoneStart: 1276,
+            tradDecelerationZoneEnd: 1440,
+            tradDecelerationFactor: 0.6,
+
+            // FSAR结构（逻辑坐标，按1.636倍扩展，渲染时会乘以scale压缩）
+            fsarExitX: 1202,
+            fsarEntryX: 1554,
+            fsarIsolationStart: 1243,
+            fsarIsolationEnd: 1505,
+            fsarAccelLaneLength: 100,
+
+            // IDM跟驰模型参数（更真实的物理参数）
+            idm: {
+                aMax: 0.022,              // 最大加速度（v3.1-X: 0.018→0.022，保守提升）
+                bComfort: 0.04,           // 舒适减速度
+                bMax: 0.12,               // 最大减速度（紧急制动）
+                s0: 8,                    // 最小净间距（降低，车辆更紧凑）
+                T: 38,                    // 安全时距（v3.1-X: 45→38，更紧密跟车）
+                delta: 4,                 // 加速指数
+                v0Main: 2.8,              // 主线期望速度（略降）
+                v0Ramp: 0.6,              // 匝道期望速度（降低）
+                startupAccelFactor: 0.20, // 启动加速因子（v3.1-X: 0.15→0.20，更快起步）
+                startupPhaseDuration: 65, // 启动阶段持续帧数（v3.1-X: 80→65，缩短启动期）
+                reactionTime: 8,          // 反应时间（帧）（v3.1-X: 12→8，更快反应）
+                speedVariation: 0.15,     // 速度变异系数 - 新增
+            },
+            // FSAR状态机区域（逻辑坐标，预警区移至画面内）
+            fsm: {
+                warningZoneStart: 150,   // 预警区起点（150×0.611≈92px，画面内可见）
+                solidLineX: 949,         // 实线锁定区起点
+                exitDeadlineX: 1235,      // 泄压出口截止点（紧邻隔离区）
+                naturalExitRatio: 0.20,
+            },
+            // 间隙接受参数
+            gapAcceptance: {
+                minLeadGap: 35,
+                minLagGap: 25,
+            },
+            // 变道动画
+            laneChange: {
+                duration: 45,  // 变道动画帧数：45帧 ≈ 0.75秒（Y轴缩放后变道距离缩短）
+            },
+            // MOBIL变道激励参数（主动避堵变道）
+            mobil: {
+                politeness: 0.3,        // 礼让系数（0=自私，1=完全礼让）
+                threshold: 0.015,       // 变道激励阈值
+                safeDecel: 0.15,        // 安全减速度阈值
+                speedRatioTrigger: 0.5, // 当车速低于期望速度此比例时考虑变道
+                laneChangeProbability: 0.65, // 基础变道意愿概率
+            },
+            // 驾驶员个性分布
+            driverPersonality: {
+                aggressiveRatio: 0.35,  // 激进司机比例（更愿意变道）
+                patientRatio: 0.25,     // 耐心司机比例（更愿意排队）
+                normalRatio: 0.40,      // 普通司机比例
+            },
+            // Zipper Merge 拉链合流参数（v1.1新增）
+            zipperMerge: {
+                maxWaitFrames: 90,      // 匝道车最大等待帧数（约1.5秒后强制合流）
+                forceMergeGap: 20,      // 强制合流时的最小安全间隙
+                yieldDistance: 50,      // 主线车让行触发距离
+                alternateStrict: true,  // 严格交替通行
+            },
+            // 上游稳定化参数（v1.1新增）
+            upstreamStability: {
+                freeFlowThreshold: 120,   // 前车距离>此值时完全自由流
+                idmInfluenceRange: 250,   // IDM影响范围
+            },
+        };
+
+        // ========== FSM 状态枚举 ==========
+        const FSM = {
+            APPROACH: 'APPROACH',
+            SORTING: 'SORTING',
+            DECISION: 'DECISION',
+            RELIEF: 'RELIEF',
+            CRUISE: 'CRUISE',
+            ZF_MERGE: 'ZF_MERGE',
+            NONE: 'NONE',
+        };
+
+        // ========== 统计数据结构（30秒滑动窗口）==========
+        const WINDOW_SIZE = 1800;  // 30秒窗口 = 1800帧（假设60fps）
+        let nextVehicleId = 0;     // 全局车辆ID计数器
+
+        // 传统结构统计
+        const tradStats = {
+            speedHistory: [],      // 存储每帧的平均速度
+            vehicleSnapshots: []   // 存储每帧的车辆快照（用于计算停车次数）
+        };
+
+        // FSAR结构统计
+        const fsarStats = {
+            speedHistory: [],
+            vehicleSnapshots: []
+        };
+
+        // ========== Vehicle 类 ==========
+        class Vehicle {
+            constructor(x, y, lane, type = 'main') {
+                this.id = nextVehicleId++;  // 唯一ID
+                this.x = x;
+                this.y = y;
+                this.lane = lane;
+                this.type = type;
+                this.speed = type === 'ramp' ? CONFIG.idm.v0Ramp : (CONFIG.idm.v0Main * 0.4);
+                this.acceleration = 0;
+
+                // 入场加速状态（v2.2新增：解决入口幽灵拥堵）
+                this.isEntering = (type === 'main');  // 仅主线车辆需要入场加速
+                this.enteringPhase = 0;
+                this.enteringDuration = 45;  // 入场持续45帧（约0.75秒）
+
+                // FSM
+                this.fsmState = FSM.NONE;
+                this.wantsMainline = true;
+                this.turnSignalActive = false;
+                this.forcedRelief = false;
+
+                // 变道动画
+                this.isChangingLane = false;
+                this.laneChangeProgress = 0;
+                this.laneChangeFrom = lane;
+                this.laneChangeTo = lane;
+
+                // 匝道
+                this.onRamp = type === 'ramp';
+                this.rampProgress = 0;
+
+                // 传统结构：加速车道状态
+                this.onAccelLane = false;
+                this.isMergingToMainline = false;  // 是否正在从加速车道并入主线
+                this.mergeProgress = 0;            // 并入动画进度
+                this.waitingToMerge = false;       // 是否正在等待汇入（汇入失败后）
+                this.mergeAttempts = 0;            // 汇入尝试次数
+                this.mergeWaitFrames = 0;          // v1.1: Zipper Merge等待计时
+                this.isReturningToLane = false;    // v1.4.3: 是否正在回退到加速车道
+
+                // FSAR结构：真空空槽状态
+                this.inVacuumSlot = false;
+
+                // 统计
+                this.stopCount = 0;
+                this.wasStopped = false;
+                this.reliefCounted = false;  // 泄压计数标志
+
+                // 反应延迟和启动延迟（形成链式瓶颈效应）
+                this.reactionDelay = 0;         // 反应延迟计数器
+                this.pendingBrake = false;      // 是否有待执行的刹车
+                this.isStationary = false;      // 是否处于静止状态
+                this.startupDelay = 0;          // 启动延迟计数器
+                this.startupPhase = 0;          // 启动阶段计数器（缓慢加速期）
+                this.randomFactor = 0.85 + Math.random() * 0.3;  // 驾驶员随机因子 (0.85-1.15)
+
+                // 驾驶员个性（主动避堵变道相关）
+                this.personality = this.assignPersonality();
+                this.laneChangeWillingness = this.calculateWillingness();
+                this.congestionAvoidCooldown = 0; // 避堵变道冷却计时
+                this.consecutiveSlowFrames = 0;   // 连续低速帧数
+            }
+
+            // 分配驾驶员个性
+            assignPersonality() {
+                const rand = Math.random();
+                if (rand < CONFIG.driverPersonality.aggressiveRatio) {
+                    return 'aggressive'; // 激进型：更愿意变道避堵
+                } else if (rand < CONFIG.driverPersonality.aggressiveRatio + CONFIG.driverPersonality.patientRatio) {
+                    return 'patient';    // 耐心型：更愿意排队等待
+                } else {
+                    return 'normal';     // 普通型：适中行为
+                }
+            }
+
+            // 根据个性计算变道意愿
+            calculateWillingness() {
+                const base = CONFIG.mobil.laneChangeProbability;
+                switch (this.personality) {
+                    case 'aggressive': return Math.min(1.0, base + 0.25);
+                    case 'patient':    return Math.max(0.1, base - 0.35);
+                    default:           return base;
+                }
+            }
+
+            getColor() {
+                const ratio = Math.min(this.speed / CONFIG.idm.v0Main, 1);
+                if (ratio > 0.7) {
+                    const t = (ratio - 0.7) / 0.3;
+                    const r = Math.round(46 * (1 - t));
+                    const g = Math.round(204 * t + 180 * (1 - t));
+                    const b = Math.round(113 * t + 50 * (1 - t));
+                    return `rgb(${r},${g},${b})`;
+                } else if (ratio > 0.3) {
+                    const t = (ratio - 0.3) / 0.4;
+                    return `rgb(243,${Math.round(156 + 100 * (1 - t))},18)`;
+                } else {
+                    const t = ratio / 0.3;
+                    return `rgb(${Math.round(255 - 50 * t)},${Math.round(68 * t)},${Math.round(68 * t)})`;
+                }
+            }
+
+            getLaneY() {
+                if (this.isChangingLane) {
+                    const fromY = CONFIG.roadY + this.laneChangeFrom * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+                    const toY = CONFIG.roadY + this.laneChangeTo * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+                    // 使用余弦插值实现平滑变道（S型曲线）
+                    const smoothProgress = (1 - Math.cos(this.laneChangeProgress * Math.PI)) / 2;
+                    return fromY + (toY - fromY) * smoothProgress;
+                }
+                return CONFIG.roadY + this.lane * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+            }
+        }
+
+        // ========== 模拟状态 ==========
+        let tradVehicles = [];
+        let fsarVehicles = [];
+        let isRunning = false;
+        let frameCount = 0;
+        let lastSpawnTime = { trad: 0, fsar: 0, tradRamp: 0, fsarRamp: 0 };
+        let tradPassedCount = 0;
+        let fsarPassedCount = 0;
+        let fsarReliefCount = 0;
+        let fsarTotalOuterLane = 0;
+
+        // v1.2: VISSIM式待生成车辆计数（加速车道满时暂停生成）
+        let pendingRampVehicles = { trad: 0, fsar: 0 };
+
+        // 交替通行状态（Zipper Merge）
+        let lastMergeType = 'main';  // 'main' 或 'ramp'，上一辆通过冲突区的车辆类型
+        let conflictZoneClearFrame = 0;  // 冲突区上次清空的帧数
+
+        const tradCanvas = document.getElementById('traditionalCanvas');
+        const fsarCanvas = document.getElementById('fsarCanvas');
+        const tradCtx = tradCanvas.getContext('2d');
+        const fsarCtx = fsarCanvas.getContext('2d');
+
+        // ========== 流量等级 ==========
+        function getFlowLevel(flow) {
+            if (flow <= 3400) return { name: '低谷', spawnInterval: 70, rampInterval: 250 };
+            if (flow <= 4200) return { name: '平峰', spawnInterval: 45, rampInterval: 150 };
+            if (flow <= 5100) return { name: '高峰', spawnInterval: 28, rampInterval: 90 };
+            return { name: '顶峰', spawnInterval: 18, rampInterval: 55 };  // 增加车流密度
+        }
+
+        // ========== IDM 跟驰模型 ==========
+        function computeIDMAcceleration(vehicle, leadVehicle, leadDistance, desiredSpeed) {
+            const v = vehicle.speed;
+            const v0 = desiredSpeed || CONFIG.idm.v0Main;
+            const a = CONFIG.idm.aMax;
+            const b = CONFIG.idm.bComfort;
+            const s0 = CONFIG.idm.s0;
+            const T = CONFIG.idm.T;
+            const delta = CONFIG.idm.delta;
+
+            const freeRoadTerm = a * (1 - Math.pow(v / Math.max(v0, 0.01), delta));
+
+            // v1.1: 使用上游稳定化参数，扩大自由流范围
+            if (!leadVehicle || leadDistance > CONFIG.upstreamStability.idmInfluenceRange) {
+                return freeRoadTerm;
+            }
+
+            const deltaV = v - leadVehicle.speed;
+            const sStar = s0 + Math.max(0, v * T + (v * deltaV) / (2 * Math.sqrt(a * b)));
+            const s = Math.max(leadDistance - CONFIG.carLength, 0.1);
+
+            return freeRoadTerm - a * Math.pow(sStar / s, 2);
+        }
+
+        // ========== 查找前车（增强版：防穿模） ==========
+        function findLeadVehicle(vehicles, vehicle) {
+            let minDist = Infinity;
+            let leadVehicle = null;
+            const vLane = vehicle.isChangingLane ? vehicle.laneChangeTo : vehicle.lane;
+            const vLaneFrom = vehicle.isChangingLane ? vehicle.laneChangeFrom : vehicle.lane;
+
+            for (const other of vehicles) {
+                if (other === vehicle) continue;
+                // 跳过匝道上或加速车道上的车辆（它们不在主车道上）
+                if (other.onRamp || other.onAccelLane || other.type === 'accel') continue;
+                // 正在汇入的车辆也要考虑
+                if (other.isMergingToMainline && other.mergeProgress < 0.7) continue;
+
+                const oLane = other.isChangingLane ? other.laneChangeTo : other.lane;
+                const oLaneFrom = other.isChangingLane ? other.laneChangeFrom : other.lane;
+
+                // 检查目标车道和来源车道（防止变道过程中的穿模）
+                const sameLane = (oLane === vLane || oLaneFrom === vLane || oLane === vLaneFrom);
+                if (!sameLane) continue;
+
+                const dist = other.x - vehicle.x;
+                if (dist > 0 && dist < minDist) {
+                    minDist = dist;
+                    leadVehicle = other;
+                }
+            }
+            return { vehicle: leadVehicle, distance: minDist };
+        }
+
+        // ========== 间隙接受模型（增强版：同时检查来源车道） ==========
+        function checkGapAcceptance(vehicle, targetLane, vehicles) {
+            const minLead = CONFIG.gapAcceptance.minLeadGap;
+            const minLag = CONFIG.gapAcceptance.minLagGap;
+
+            for (const other of vehicles) {
+                if (other === vehicle || other.onRamp) continue;
+                const oLane = other.isChangingLane ? other.laneChangeTo : other.lane;
+                const oLaneFrom = other.isChangingLane ? other.laneChangeFrom : other.lane;
+
+                // 检查是否在目标车道或正在变道进入目标车道
+                if (oLane !== targetLane && oLaneFrom !== targetLane) continue;
+
+                const dx = other.x - vehicle.x;
+                if (dx > 0 && dx < minLead) return false;
+                if (dx < 0 && dx > -minLag) return false;
+            }
+            return true;
+        }
+
+        // ========== MOBIL变道激励模型（主动避堵变道） ==========
+        function calculateMOBILIncentive(vehicle, targetLane, vehicles) {
+            // 计算当前车道的跟驰加速度
+            const currentLead = findLeadVehicle(vehicles, vehicle);
+            const accCurrent = computeIDMAcceleration(vehicle, currentLead.vehicle, currentLead.distance, CONFIG.idm.v0Main);
+
+            // 模拟变道后的跟驰加速度
+            const tempLane = vehicle.lane;
+            vehicle.lane = targetLane;
+            const newLead = findLeadVehicle(vehicles, vehicle);
+            const accNew = computeIDMAcceleration(vehicle, newLead.vehicle, newLead.distance, CONFIG.idm.v0Main);
+            vehicle.lane = tempLane;
+
+            // 计算变道对后车的影响（礼让因子）
+            let accLossFollower = 0;
+            for (const other of vehicles) {
+                if (other === vehicle || other.onRamp) continue;
+                const oLane = other.isChangingLane ? other.laneChangeTo : other.lane;
+                if (oLane !== targetLane) continue;
+                const dx = vehicle.x - other.x;
+                if (dx > 0 && dx < CONFIG.gapAcceptance.minLagGap * 2) {
+                    // 计算如果变道，后车需要的减速度
+                    const accFollowerBefore = computeIDMAcceleration(other, newLead.vehicle,
+                        newLead.vehicle ? (newLead.vehicle.x - other.x) : 999, CONFIG.idm.v0Main);
+                    const accFollowerAfter = computeIDMAcceleration(other, vehicle, dx, CONFIG.idm.v0Main);
+                    accLossFollower = Math.max(accLossFollower, accFollowerBefore - accFollowerAfter);
+                }
+            }
+
+            // MOBIL激励值 = 自身收益 - 礼让系数 * 后车损失
+            const incentive = (accNew - accCurrent) - CONFIG.mobil.politeness * accLossFollower;
+
+            // 安全检查：后车减速度不能超过安全阈值
+            if (accLossFollower > CONFIG.mobil.safeDecel) {
+                return -999; // 不安全，禁止变道
+            }
+
+            return incentive;
+        }
+
+        // ========== 主动避堵变道决策 ==========
+        function tryAvoidCongestionLaneChange(vehicle, vehicles, isFSAR = false) {
+            // 跳过条件：正在变道、在匝道上、冷却中
+            if (vehicle.isChangingLane || vehicle.onRamp || vehicle.congestionAvoidCooldown > 0) {
+                return false;
+            }
+
+            // FSAR最外侧车道的特殊处理（受FSM控制）
+            if (isFSAR && vehicle.lane === CONFIG.laneCount - 1 &&
+                vehicle.fsmState !== FSM.NONE && vehicle.fsmState !== FSM.CRUISE) {
+                return false;
+            }
+
+            // 检测是否因拥堵减速
+            const speedRatio = vehicle.speed / CONFIG.idm.v0Main;
+            if (speedRatio > CONFIG.mobil.speedRatioTrigger) {
+                vehicle.consecutiveSlowFrames = 0;
+                return false; // 速度正常，无需避堵
+            }
+
+            // 累计低速帧数
+            vehicle.consecutiveSlowFrames++;
+
+            // 需要持续低速一段时间才触发变道考虑（避免频繁变道）
+            const slowThreshold = vehicle.personality === 'aggressive' ? 15 :
+                                   vehicle.personality === 'patient' ? 45 : 25;
+            if (vehicle.consecutiveSlowFrames < slowThreshold) {
+                return false;
+            }
+
+            // 根据个性决定是否尝试变道
+            if (Math.random() > vehicle.laneChangeWillingness) {
+                return false; // 此司机选择继续排队
+            }
+
+            // 确定可选目标车道
+            const candidateLanes = [];
+            if (vehicle.lane > 0) candidateLanes.push(vehicle.lane - 1); // 内侧车道
+            if (vehicle.lane < CONFIG.laneCount - 1) {
+                // FSAR模式下检查是否在隔离区范围或即将进入隔离区
+                if (isFSAR) {
+                    const willEnterIsolation = vehicle.x >= CONFIG.fsm.warningZoneStart - 30 &&
+                                                vehicle.x <= CONFIG.fsarIsolationEnd + 30;
+                    if (willEnterIsolation) {
+                        // 不能向最外侧车道变道（会进入隔离区）
+                    } else {
+                        candidateLanes.push(vehicle.lane + 1);
+                    }
+                } else {
+                    candidateLanes.push(vehicle.lane + 1); // 外侧车道
+                }
+            }
+
+            // 评估每个候选车道
+            let bestLane = -1;
+            let bestIncentive = CONFIG.mobil.threshold;
+
+            for (const targetLane of candidateLanes) {
+                // 先检查基本间隙
+                if (!checkGapAcceptance(vehicle, targetLane, vehicles)) continue;
+
+                // 计算MOBIL激励值
+                const incentive = calculateMOBILIncentive(vehicle, targetLane, vehicles);
+                if (incentive > bestIncentive) {
+                    bestIncentive = incentive;
+                    bestLane = targetLane;
+                }
+            }
+
+            // 执行变道
+            if (bestLane >= 0) {
+                startLaneChange(vehicle, bestLane);
+                vehicle.consecutiveSlowFrames = 0;
+                vehicle.congestionAvoidCooldown = 60; // 变道后冷却60帧
+                return true;
+            }
+
+            return false;
+        }
+
+        // ========== VISSIM式拉链合并：v1.1增强版 ==========
+        // 核心思想：交替通行 + 超时强制合流 + 主线让行
+        let lastPassedType = 'main';  // 记录上一辆通过冲突点的车辆类型
+        let mainPassCount = 0;        // 连续通过的主线车数量
+
+        // v1.4 fix: 检测是否会发生碰撞（检查前后方车辆）
+        function willCollide(rampVehicle, vehicles) {
+            const rearDangerZone = CONFIG.carLength;       // 后方碰撞距离
+            const frontDangerZone = CONFIG.carLength * 2;  // 前方碰撞距离（更宽松）
+
+            for (const mv of vehicles) {
+                if (mv.onRamp || mv.onAccelLane || mv.type !== 'main') continue;
+                if (mv.lane !== CONFIG.laneCount - 1) continue;
+
+                const dx = mv.x - rampVehicle.x;
+                // 后方车辆检查（更严格）
+                if (dx < 0 && dx > -rearDangerZone) {
+                    return true;
+                }
+                // v1.4 fix: 前方车辆检查（稍宽松）
+                if (dx > 0 && dx < frontDangerZone) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // v1.1: 检查匝道车是否超时等待（需要强制合流）
+        function shouldForceMerge(rampVehicle) {
+            return rampVehicle.mergeWaitFrames >= CONFIG.zipperMerge.maxWaitFrames;
+        }
+
+        // v1.4 fix: 检查强制合流时的最小安全间隙（更宽松）
+        function checkForceMergeGap(rampVehicle, vehicles) {
+            // v1.4: 降低间隙要求，只检查后方车辆
+            const forceGap = CONFIG.zipperMerge.forceMergeGap * 0.7;
+
+            for (const mv of vehicles) {
+                if (mv.onRamp || mv.onAccelLane || mv.type !== 'main') continue;
+                if (mv.lane !== CONFIG.laneCount - 1) continue;
+
+                const dx = mv.x - rampVehicle.x;
+                // v1.4: 只检查后方车辆的间隙
+                if (dx < 0 && dx > -forceGap) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // v1.1: 主线车让行逻辑 - 找到需要让行的主线车
+        function findYieldingMainlineVehicle(rampVehicle, vehicles) {
+            const yieldDist = CONFIG.zipperMerge.yieldDistance;
+            const conflictX = rampVehicle.x;
+
+            for (const mv of vehicles) {
+                if (mv.onRamp || mv.onAccelLane || mv.type !== 'main') continue;
+                if (mv.lane !== CONFIG.laneCount - 1) continue;
+
+                const dx = mv.x - conflictX;
+                // 主线车在匝道车后方且距离在让行范围内
+                if (dx < 0 && dx > -yieldDist && mv.speed > 0.5) {
+                    return mv;
+                }
+            }
+            return null;
+        }
+
+        // 拉链优先级：返回true表示匝道车优先
+        function zipperPriority(rampVehicle, vehicles) {
+            // v1.1: 超时强制合流 - 最高优先级
+            if (shouldForceMerge(rampVehicle)) {
+                return true;
+            }
+
+            // 首先检查冲突区是否有主线车
+            const conflictZoneStart = CONFIG.tradAccelLaneStart;
+            const conflictZoneEnd = CONFIG.tradAccelLaneStart + CONFIG.tradAccelLaneLength;
+
+            const mainlineNearby = vehicles && vehicles.find(mv =>
+                !mv.onRamp && !mv.onAccelLane && mv.type === 'main' &&
+                mv.lane === CONFIG.laneCount - 1 &&
+                mv.x >= conflictZoneStart - 60 && mv.x <= conflictZoneEnd + 30
+            );
+
+            // 如果附近没有主线车，匝道车直接优先
+            if (!mainlineNearby) {
+                return true;
+            }
+
+            // v1.1: 严格交替通行模式
+            if (CONFIG.zipperMerge.alternateStrict) {
+                if (lastPassedType === 'ramp') {
+                    return false;  // 刚过了匝道车，主线车优先
+                }
+                return true;  // 严格交替：主线过了就轮到匝道
+            }
+
+            // 非严格模式：连续过了1辆或更多主线车，匝道车优先
+            if (lastPassedType === 'ramp') {
+                return false;
+            }
+            return mainPassCount >= 1;
+        }
+
+        // v1.1: 应用主线让行减速
+        function applyMainlineYield(rampVehicle, vehicles) {
+            if (!zipperPriority(rampVehicle, vehicles)) return;
+
+            const yieldingVehicle = findYieldingMainlineVehicle(rampVehicle, vehicles);
+            if (yieldingVehicle) {
+                // 主线车减速让行
+                const targetSpeed = Math.max(0.3, rampVehicle.speed * 0.6);
+                if (yieldingVehicle.speed > targetSpeed) {
+                    yieldingVehicle.speed = Math.max(targetSpeed, yieldingVehicle.speed - CONFIG.idm.bComfort * 1.5);
+                }
+            }
+        }
+
+        // ========== 变道控制 ==========
+        function startLaneChange(vehicle, targetLane) {
+            // 如果已经在变道中，不要重新开始变道
+            if (vehicle.isChangingLane) {
+                return;
+            }
+
+            // FSAR安全检查：不允许变道进入隔离区
+            if (targetLane === CONFIG.laneCount - 1) {
+                const willEnterIsolation = vehicle.x >= CONFIG.fsm.warningZoneStart - 30 &&
+                                            vehicle.x <= CONFIG.fsarIsolationEnd + 50;
+                // 检查是否是FSAR车辆（通过检查是否有fsarVehicles包含该车辆）
+                // 简化处理：如果目标是最外侧车道且在隔离区范围，直接拒绝
+                if (willEnterIsolation && vehicle.fsmState !== undefined &&
+                    vehicle.fsmState !== FSM.ZF_MERGE && vehicle.fsmState !== FSM.RELIEF) {
+                    return;  // 拒绝变道
+                }
+            }
+
+            vehicle.isChangingLane = true;
+            vehicle.laneChangeProgress = 0;
+            vehicle.laneChangeFrom = vehicle.lane;
+            vehicle.laneChangeTo = targetLane;
+        }
+
+        function updateLaneChange(vehicle) {
+            if (!vehicle.isChangingLane) {
+                // 确保车辆在车道居中
+                vehicle.y = vehicle.getLaneY();
+                return;
+            }
+
+            // 变道进度已经超过50%，不再取消变道（防止抖动反弹）
+            const commitThreshold = 0.5;
+            const isCommitted = vehicle.laneChangeProgress >= commitThreshold;
+
+            // FSAR安全检查：只在变道未超过阈值时才能取消
+            if (!isCommitted &&
+                vehicle.laneChangeTo === CONFIG.laneCount - 1 &&
+                vehicle.x >= CONFIG.fsm.solidLineX &&
+                vehicle.fsmState !== undefined &&
+                vehicle.fsmState !== FSM.ZF_MERGE) {
+                // 取消变道并居中到原车道
+                vehicle.isChangingLane = false;
+                vehicle.lane = vehicle.laneChangeFrom;
+                vehicle.laneChangeProgress = 0;
+                vehicle.y = CONFIG.roadY + vehicle.lane * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+                return;
+            }
+
+            // 变道期间必须继续向前移动（不能后退）
+            const minForwardSpeed = 0.3;
+            if (vehicle.speed < minForwardSpeed) {
+                vehicle.speed = minForwardSpeed;
+            }
+
+            vehicle.laneChangeProgress += 1 / CONFIG.laneChange.duration;
+            if (vehicle.laneChangeProgress >= 1) {
+                vehicle.lane = vehicle.laneChangeTo;
+                vehicle.isChangingLane = false;
+                vehicle.laneChangeProgress = 0;
+                // 变道完成后强制居中
+                vehicle.y = CONFIG.roadY + vehicle.lane * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+            } else {
+                vehicle.y = vehicle.getLaneY();
+            }
+        }
+
+        // ========== 减速波链式传播（形成幽灵堵车） ==========
+        function propagateBrakeWave(triggerVehicle, vehicles, lane) {
+            // v3.1-X: 向后方车辆传递延迟递增的减速信号（增强版）
+            const nearbyRear = vehicles.filter(v =>
+                !v.onRamp && !v.onAccelLane &&
+                v.lane === lane &&
+                v.x < triggerVehicle.x &&
+                triggerVehicle.x - v.x < 400  // v3.1-X: 扩大传播范围 300→400单位
+            ).sort((a, b) => b.x - a.x);  // 按距离排序（近到远）
+
+            let cumulativeDelay = 0;
+            nearbyRear.forEach((v, index) => {
+                if (!v.pendingBrake) {
+                    // v3.1-X: 减少随机分量 12→8，使减速更连续
+                    cumulativeDelay += CONFIG.idm.reactionTime + Math.floor(Math.random() * 8);
+                    v.pendingBrake = true;
+                    v.reactionDelay = cumulativeDelay;
+                    // v3.1-X: 减少制动强度增长率 0.1→0.05，避免过度放大
+                    v.brakeIntensity = 1 + index * 0.05;  // 越靠后制动越急
+                }
+            });
+        }
+
+        // ========== 应用IDM并更新位置（含反应延迟和启动延迟） ==========
+        function applyIDMAndMove(vehicle, vehicles, desiredSpeed) {
+            const leadInfo = findLeadVehicle(vehicles, vehicle);
+            const leadDist = leadInfo.distance;
+            const leadVehicle = leadInfo.vehicle;
+
+            // 驾驶员随机因子影响期望速度
+            const effectiveDesiredSpeed = desiredSpeed * vehicle.randomFactor;
+
+            // === v2.2新增：入场加速阶段 ===
+            if (vehicle.isEntering && vehicle.type === 'main') {
+                vehicle.enteringPhase++;
+
+                // 入场阶段持续45帧（约0.75秒）
+                if (vehicle.enteringPhase >= vehicle.enteringDuration) {
+                    vehicle.isEntering = false;  // 结束入场阶段
+                } else {
+                    // 渐进加速：从40%速度平滑加速到100%
+                    const progress = vehicle.enteringPhase / vehicle.enteringDuration;
+                    const smoothProgress = (1 - Math.cos(progress * Math.PI)) / 2;  // S型曲线
+                    const targetSpeed = effectiveDesiredSpeed * (0.4 + 0.6 * smoothProgress);
+
+                    // 温和加速
+                    const enteringAccel = CONFIG.idm.aMax * 0.6;  // 使用60%的最大加速度
+                    vehicle.speed = Math.min(vehicle.speed + enteringAccel, targetSpeed);
+
+                    // 安全检查：如果前车太近，提前结束入场阶段
+                    if (leadVehicle && leadDist < CONFIG.carLength * 3) {
+                        vehicle.isEntering = false;
+                    }
+
+                    vehicle.x += vehicle.speed;
+                    return;  // 入场阶段不执行后续IDM逻辑
+                }
+            }
+            // === 入场加速阶段结束 ===
+
+            // 计算期望加速度
+            const desiredAcc = computeIDMAcceleration(vehicle, leadVehicle, leadDist, effectiveDesiredSpeed);
+
+            // 防穿模：硬性距离检查
+            const minSafeDistance = CONFIG.carLength + 4;
+            if (leadVehicle && leadDist < minSafeDistance) {
+                vehicle.speed = Math.max(0, leadVehicle.speed * 0.65);  // v3.1-X: 0.3→0.65，软化制动
+                vehicle.x += vehicle.speed;
+                return;
+            }
+
+            // v1.1: 使用上游稳定化参数，扩大自由流阈值
+            if (!leadVehicle || leadDist > CONFIG.upstreamStability.freeFlowThreshold) {
+                // 前方畅通，重置所有等待状态
+                vehicle.isStationary = false;
+                vehicle.startupPhase = 0;
+                vehicle.startupDelay = 0;
+                vehicle.pendingBrake = false;
+
+                // 正常加速
+                vehicle.acceleration = Math.min(desiredAcc, CONFIG.idm.aMax);
+                vehicle.speed = Math.max(0, Math.min(vehicle.speed + vehicle.acceleration, effectiveDesiredSpeed));
+                vehicle.x += vehicle.speed;
+
+                if (vehicle.speed < 0.1 && !vehicle.wasStopped) {
+                    vehicle.stopCount++;
+                    vehicle.wasStopped = true;
+                } else if (vehicle.speed >= 0.1) {
+                    vehicle.wasStopped = false;
+                }
+                return;
+            }
+
+            // 1. 启动延迟（仅当确实需要跟车且距离很近时）
+            if (vehicle.speed < 0.02 && leadVehicle && leadDist < 50) {
+                if (!vehicle.isStationary) {
+                    vehicle.isStationary = true;
+                    vehicle.startupDelay = 8 + Math.floor(Math.random() * 10);  // v3.1-X: 10+random(15)→8+random(10)，更快启动
+                    vehicle.startupPhase = 0;
+
+                    // v3.1-X: 触发刹车波传播（新增）
+                    propagateBrakeWave(vehicle, vehicles, vehicle.lane);
+                }
+            }
+
+            if (vehicle.isStationary) {
+                const hasSpace = leadDist > minSafeDistance * 1.8;
+                if (hasSpace) {
+                    if (vehicle.startupDelay > 0) {
+                        vehicle.startupDelay--;
+                        vehicle.speed = 0;
+                        return;
+                    } else {
+                        vehicle.isStationary = false;
+                        vehicle.startupPhase = CONFIG.idm.startupPhaseDuration;  // 使用配置的启动阶段时长
+                    }
+                } else {
+                    vehicle.speed = 0;
+                    return;
+                }
+            }
+
+            // 2. 启动阶段：非常缓慢的加速（模拟真实起步）
+            if (vehicle.startupPhase > 0) {
+                vehicle.startupPhase--;
+                const startupAccel = CONFIG.idm.aMax * CONFIG.idm.startupAccelFactor;
+                const startupProgress = 1 - (vehicle.startupPhase / CONFIG.idm.startupPhaseDuration);
+                // 使用S型曲线使启动更平滑
+                const smoothProgress = (1 - Math.cos(startupProgress * Math.PI)) / 2;
+                const startupMaxSpeed = effectiveDesiredSpeed * smoothProgress * 0.5;
+
+                vehicle.acceleration = Math.min(desiredAcc, startupAccel);
+                vehicle.speed = Math.max(0, Math.min(vehicle.speed + vehicle.acceleration, startupMaxSpeed));
+
+                if (leadVehicle && leadDist < minSafeDistance * 1.5) {
+                    vehicle.speed = Math.min(vehicle.speed, leadVehicle.speed * 0.7);
+                }
+
+                vehicle.x += vehicle.speed;
+                return;
+            }
+
+            // 3. 反应延迟（增加延迟使制动波更明显）
+            if (desiredAcc < -CONFIG.idm.bComfort * 0.6 && !vehicle.pendingBrake && vehicle.speed > 0.5) {
+                vehicle.pendingBrake = true;
+                vehicle.reactionDelay = CONFIG.idm.reactionTime + Math.floor(Math.random() * 10);  // 使用配置的反应时间
+            }
+
+            if (vehicle.pendingBrake && vehicle.reactionDelay > 0) {
+                vehicle.reactionDelay--;
+                if (leadVehicle && leadDist < minSafeDistance * 2.0) {
+                    // 紧急制动
+                    vehicle.speed = Math.max(0, vehicle.speed - CONFIG.idm.bMax);
+                }
+                vehicle.x += vehicle.speed;
+                return;
+            } else if (vehicle.pendingBrake) {
+                vehicle.pendingBrake = false;
+            }
+
+            // 4. 正常IDM更新
+            vehicle.acceleration = desiredAcc;
+
+            // 随机扰动（更温和）
+            if (Math.random() < 0.01 && vehicle.speed > 1.8) {
+                vehicle.acceleration -= CONFIG.idm.bComfort * 0.15 * Math.random();
+            }
+
+            vehicle.speed = Math.max(0, vehicle.speed + vehicle.acceleration);
+
+            // 增强防穿模：严格距离检查
+            if (leadVehicle) {
+                const actualGap = leadDist - CONFIG.carLength;
+                if (actualGap < minSafeDistance) {
+                    // v3.1-X: 紧急制动软化 0.5→0.75
+                    vehicle.speed = Math.min(vehicle.speed, Math.max(0, leadVehicle.speed * 0.75));
+                } else if (actualGap < minSafeDistance * 2) {
+                    // 渐进制动
+                    const maxSafeSpeed = Math.max(0, (actualGap - minSafeDistance) * 0.25 + leadVehicle.speed);
+                    vehicle.speed = Math.min(vehicle.speed, maxSafeSpeed);
+                }
+            }
+
+            vehicle.x += vehicle.speed;
+
+            // 强制车道居中（非变道状态）
+            if (!vehicle.isChangingLane && !vehicle.onRamp) {
+                vehicle.y = CONFIG.roadY + vehicle.lane * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+            }
+
+            // 统计
+            if (vehicle.speed < 0.1 && !vehicle.wasStopped) {
+                vehicle.stopCount++;
+                vehicle.wasStopped = true;
+            } else if (vehicle.speed >= 0.1) {
+                vehicle.wasStopped = false;
+            }
+
+            // 累计低速帧
+            if (vehicle.speed < effectiveDesiredSpeed * 0.4) {
+                vehicle.consecutiveSlowFrames++;
+            } else {
+                vehicle.consecutiveSlowFrames = 0;
+            }
+        }
+
+        // ========== 绘制传统结构道路 ==========
+        function drawTraditionalRoad(ctx) {
+            ctx.fillStyle = '#0f0f23';
+            ctx.fillRect(0, 0, CONFIG.canvasWidth, CONFIG.canvasHeight);
+
+            // 主干道
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(0, CONFIG.roadY, CONFIG.canvasWidth, CONFIG.laneHeight * CONFIG.laneCount);
+
+            // 平行式加速车道（变速车道）- 关键结构
+            const accelStart = CONFIG.tradAccelLaneStart * CONFIG.scale;
+            const accelEnd = accelStart + CONFIG.tradAccelLaneLength * CONFIG.scale;
+            const rampEndY = CONFIG.roadY + CONFIG.laneHeight * CONFIG.laneCount;
+
+            // 绘制加速车道（在最外侧车道外侧，与主线平行）
+            ctx.fillStyle = '#34495e';
+            ctx.beginPath();
+            ctx.moveTo(accelStart, rampEndY);
+            ctx.lineTo(accelEnd, rampEndY);
+            ctx.lineTo(accelEnd, rampEndY + CONFIG.laneHeight * 0.8);
+            ctx.lineTo(accelStart - 12, rampEndY + CONFIG.laneHeight * 0.8);
+            ctx.closePath();
+            ctx.fill();
+
+            // 加速车道虚线边界
+            ctx.strokeStyle = '#ffffff';
+            ctx.setLineDash([6, 6]);
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(accelStart, rampEndY);
+            ctx.lineTo(accelEnd, rampEndY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 主干道车道分隔线
+            ctx.strokeStyle = '#ffffff';
+            ctx.setLineDash([10, 10]);
+            ctx.lineWidth = 1.5;
+            for (let i = 1; i < CONFIG.laneCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, CONFIG.roadY + i * CONFIG.laneHeight);
+                ctx.lineTo(CONFIG.canvasWidth, CONFIG.roadY + i * CONFIG.laneHeight);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // 减速带区域（冲突区上游）
+            const decelZoneStart = CONFIG.tradDecelerationZoneStart * CONFIG.scale;
+            const decelZoneEnd = CONFIG.tradDecelerationZoneEnd * CONFIG.scale;
+            ctx.fillStyle = 'rgba(255, 193, 7, 0.15)';
+            ctx.fillRect(decelZoneStart, CONFIG.roadY + CONFIG.laneHeight * 2,
+                         decelZoneEnd - decelZoneStart, CONFIG.laneHeight);
+            ctx.strokeStyle = '#ffc107';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([6, 3]);
+            ctx.strokeRect(decelZoneStart, CONFIG.roadY + CONFIG.laneHeight * 2,
+                          decelZoneEnd - decelZoneStart, CONFIG.laneHeight);
+            ctx.setLineDash([]);
+
+            // 入匝道（从左下方朝向下游汇入加速车道）
+            const rampX = CONFIG.tradAccelLaneStart * CONFIG.scale;
+            const rampStartX = rampX - 55;
+            const rampStartY = rampEndY + CONFIG.tradRampLength;
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath();
+            ctx.moveTo(rampX - 15, rampEndY + CONFIG.laneHeight * 0.8);
+            ctx.lineTo(rampX + 3, rampEndY + CONFIG.laneHeight * 0.4);
+            ctx.lineTo(rampStartX + 18, rampStartY);
+            ctx.lineTo(rampStartX - 18, rampStartY);
+            ctx.closePath();
+            ctx.fill();
+
+            // 匝道边界线
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(rampX - 15, rampEndY + CONFIG.laneHeight * 0.8);
+            ctx.lineTo(rampStartX - 18, rampStartY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(rampX + 3, rampEndY + CONFIG.laneHeight * 0.4);
+            ctx.lineTo(rampStartX + 18, rampStartY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 冲突区（高速差摩擦区域）
+            ctx.fillStyle = 'rgba(243, 156, 18, 0.3)';
+            ctx.fillRect(accelStart, CONFIG.roadY + CONFIG.laneHeight * 2,
+                         CONFIG.tradAccelLaneLength * CONFIG.scale, CONFIG.laneHeight);
+            ctx.strokeStyle = '#f39c12';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            ctx.strokeRect(accelStart, CONFIG.roadY + CONFIG.laneHeight * 2,
+                          CONFIG.tradAccelLaneLength * CONFIG.scale, CONFIG.laneHeight);
+            ctx.setLineDash([]);
+
+            // 标注
+            ctx.fillStyle = '#ffc107';
+            ctx.font = 'bold 9px Arial';
+            ctx.fillText('减速带', decelZoneStart + 10, CONFIG.roadY + CONFIG.laneHeight * 2.5 + 4);
+
+            ctx.fillStyle = '#f39c12';
+            ctx.font = 'bold 10px Arial';
+            ctx.fillText('高速差冲突区', accelStart + 12, CONFIG.roadY + CONFIG.laneHeight * 2.5 + 4);
+
+            ctx.fillStyle = '#27ae60';
+            ctx.font = 'bold 9px Arial';
+            ctx.fillText('加速车道', accelStart + 6, rampEndY + CONFIG.laneHeight * 0.5);
+
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillText('入匝道', rampX - 55, rampEndY + 80);
+
+            // 速度标注
+            ctx.fillStyle = '#e74c3c';
+            ctx.font = '9px Arial';
+            ctx.fillText('30km/h', rampX - 52, rampEndY + 95);
+
+            ctx.fillStyle = '#3498db';
+            ctx.fillText('80km/h', 50, CONFIG.roadY + CONFIG.laneHeight * 2.5 - 5);
+
+            ctx.fillStyle = '#3498db';
+            ctx.font = '16px Arial';
+            ctx.fillText('→→→', 20, CONFIG.roadY + CONFIG.laneHeight * 1.5);
+        }
+
+        // ========== 绘制FSAR结构道路 ==========
+        function drawFSARRoad(ctx) {
+            ctx.fillStyle = '#0f0f23';
+            ctx.fillRect(0, 0, CONFIG.canvasWidth, CONFIG.canvasHeight);
+
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(0, CONFIG.roadY, CONFIG.canvasWidth, CONFIG.laneHeight * CONFIG.laneCount);
+
+            const rampEndY = CONFIG.roadY + CONFIG.laneHeight * CONFIG.laneCount;
+
+            // 车道分隔线（隔离区外）
+            ctx.strokeStyle = '#ffffff';
+            ctx.setLineDash([10, 10]);
+            ctx.lineWidth = 1.5;
+            for (let i = 1; i < CONFIG.laneCount; i++) {
+                ctx.beginPath();
+                if (i === CONFIG.laneCount - 1) {
+                    ctx.moveTo(0, CONFIG.roadY + i * CONFIG.laneHeight);
+                    ctx.lineTo(CONFIG.fsarIsolationStart * CONFIG.scale, CONFIG.roadY + i * CONFIG.laneHeight);
+                    ctx.moveTo(CONFIG.fsarIsolationEnd * CONFIG.scale, CONFIG.roadY + i * CONFIG.laneHeight);
+                    ctx.lineTo(CONFIG.canvasWidth, CONFIG.roadY + i * CONFIG.laneHeight);
+                } else {
+                    ctx.moveTo(0, CONFIG.roadY + i * CONFIG.laneHeight);
+                    ctx.lineTo(CONFIG.canvasWidth, CONFIG.roadY + i * CONFIG.laneHeight);
+                }
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // 电子变道线：预警区虚线
+            const outerLaneY = CONFIG.roadY + (CONFIG.laneCount - 1) * CONFIG.laneHeight;
+            const warningStart = Math.max(0, CONFIG.fsm.warningZoneStart * CONFIG.scale);
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(warningStart, outerLaneY);
+            ctx.lineTo(CONFIG.fsm.solidLineX * CONFIG.scale, outerLaneY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 电子变道线：实线锁定区
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(CONFIG.fsm.solidLineX * CONFIG.scale, outerLaneY);
+            ctx.lineTo(CONFIG.fsarIsolationStart * CONFIG.scale, outerLaneY);
+            ctx.stroke();
+
+            // 真空隔离区
+            const isoY = CONFIG.roadY + CONFIG.laneHeight * 2;
+            const isoStart = CONFIG.fsarIsolationStart * CONFIG.scale;
+            const isoEnd = CONFIG.fsarIsolationEnd * CONFIG.scale;
+            ctx.fillStyle = 'rgba(155, 89, 182, 0.5)';
+            ctx.fillRect(isoStart, isoY, isoEnd - isoStart, CONFIG.laneHeight);
+
+            // 隔离区栅栏（交替紫色竖线）
+            ctx.strokeStyle = '#9b59b6';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(isoStart, isoY, isoEnd - isoStart, CONFIG.laneHeight);
+            ctx.strokeStyle = 'rgba(155, 89, 182, 0.8)';
+            ctx.lineWidth = 1.5;
+            for (let x = isoStart; x < isoEnd; x += 8) {
+                ctx.beginPath();
+                ctx.moveTo(x, isoY);
+                ctx.lineTo(x, isoY + CONFIG.laneHeight);
+                ctx.stroke();
+            }
+
+            // 出匝道（泄压口）
+            const exitStartX = CONFIG.fsm.exitDeadlineX * CONFIG.scale;
+            const exitStartY = CONFIG.roadY + CONFIG.laneHeight * 2.5;
+            const exitEndX = exitStartX + 60;
+            const exitEndY = rampEndY + 80;
+
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath();
+            ctx.moveTo(exitStartX - 6, exitStartY - 4);
+            ctx.lineTo(exitStartX + 6, exitStartY - 4);
+            ctx.lineTo(exitEndX + 6, exitEndY);
+            ctx.lineTo(exitEndX - 30, exitEndY);
+            ctx.closePath();
+            ctx.fill();
+
+            // 出匝道边界线
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(exitStartX - 6, exitStartY - 4);
+            ctx.lineTo(exitEndX - 30, exitEndY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(exitStartX + 6, exitStartY - 4);
+            ctx.lineTo(exitEndX + 6, exitEndY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // FSAR汇入加速区（真空空槽）
+            const vacuumSlotStart = isoEnd;
+            const vacuumSlotLength = CONFIG.fsarAccelLaneLength * CONFIG.scale;
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.2)';
+            ctx.fillRect(vacuumSlotStart, isoY, vacuumSlotLength, CONFIG.laneHeight);
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 3]);
+            ctx.strokeRect(vacuumSlotStart, isoY, vacuumSlotLength, CONFIG.laneHeight);
+            ctx.setLineDash([]);
+
+            // 入匝道（从左下方朝向下游汇入真空空槽）
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath();
+            ctx.moveTo(isoEnd + 9, isoY);
+            ctx.lineTo(isoEnd + 21, isoY);
+            ctx.lineTo(CONFIG.fsarEntryX * CONFIG.scale - 30, rampEndY + 100);
+            ctx.lineTo(CONFIG.fsarEntryX * CONFIG.scale - 55, rampEndY + 100);
+            ctx.closePath();
+            ctx.fill();
+
+            // 入匝道边界线
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(isoEnd + 9, isoY);
+            ctx.lineTo(CONFIG.fsarEntryX * CONFIG.scale - 55, rampEndY + 100);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(isoEnd + 21, isoY);
+            ctx.lineTo(CONFIG.fsarEntryX * CONFIG.scale - 30, rampEndY + 100);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 标注（居中对齐到对应结构）
+            ctx.fillStyle = '#9b59b6';
+            ctx.font = 'bold 10px Arial';
+            const isoWidth = isoEnd - isoStart;
+            const isoTextX = isoStart + isoWidth / 2 - 30;  // 居中偏移
+            ctx.fillText('真空隔离区', isoTextX, isoY + 18);
+            ctx.fillText('(不可通行)', isoTextX + 3, isoY + 30);
+
+            ctx.fillStyle = '#2ecc71';
+            ctx.font = 'bold 9px Arial';
+            const vacuumTextX = vacuumSlotStart + vacuumSlotLength / 2 - 28;  // 居中偏移
+            ctx.fillText('无干扰空槽', vacuumTextX, isoY + 20);
+            ctx.fillText('(零摩擦加速)', vacuumTextX - 3, isoY + 32);
+
+            ctx.fillStyle = '#2ecc71';
+            ctx.fillText('出匝道(泄压)', exitStartX + 10, exitEndY - 8);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillText('入匝道', isoEnd + 18, rampEndY + 55);
+
+            ctx.fillStyle = '#00d4ff';
+            ctx.font = '9px Arial';
+            if (warningStart > 0) {
+                ctx.fillText('预警区', warningStart + 3, outerLaneY - 4);
+            }
+            ctx.fillText('锁定区', CONFIG.fsm.solidLineX * CONFIG.scale + 3, outerLaneY - 4);
+
+            ctx.fillStyle = '#3498db';
+            ctx.font = '16px Arial';
+            ctx.fillText('→→→', 20, CONFIG.roadY + CONFIG.laneHeight * 1.5);
+        }
+
+        // ========== 生成车辆 ==========
+        function spawnVehicles() {
+            const flow = parseInt(document.getElementById('flowRate').value);
+            const level = getFlowLevel(flow);
+
+            // 传统 - 主线
+            if (frameCount - lastSpawnTime.trad >= level.spawnInterval) {
+                const lane = Math.floor(Math.random() * CONFIG.laneCount);
+                const canSpawn = !tradVehicles.some(v =>
+                    v.x < 60 && v.lane === lane && !v.onRamp
+                );
+                if (canSpawn) {
+                    const v = new Vehicle(-CONFIG.carLength, 0, lane, 'main');
+                    v.y = v.getLaneY();
+                    tradVehicles.push(v);
+                    lastSpawnTime.trad = frameCount;
+                }
+            }
+
+            // 传统 - 匝道（v1.2: VISSIM式流量控制）
+            if (frameCount - lastSpawnTime.tradRamp >= level.rampInterval) {
+                // v1.2: 检查加速车道是否已满（VISSIM式流量控制）
+                const accelLaneVehicles = tradVehicles.filter(v =>
+                    (v.onAccelLane || v.type === 'accel') && !v.isMergingToMainline
+                );
+                const accelLaneCapacity = Math.floor(CONFIG.tradAccelLaneLength / (CONFIG.carLength + 8));
+                const isAccelLaneFull = accelLaneVehicles.length >= accelLaneCapacity;
+
+                // v1.2: 检查匝道入口是否有车正在进入
+                const canSpawn = !tradVehicles.some(v =>
+                    v.onRamp && v.type === 'ramp' && v.rampProgress < 0.25
+                );
+
+                if (canSpawn && !isAccelLaneFull) {
+                    const rampEndY = CONFIG.roadY + CONFIG.laneHeight * CONFIG.laneCount;
+                    // 匝道起点与绘制对齐
+                    const rampStartX = CONFIG.tradAccelLaneStart - 90;
+                    const rampStartY = rampEndY + CONFIG.tradRampLength;
+                    const v = new Vehicle(rampStartX, rampStartY, CONFIG.laneCount - 1, 'ramp');
+                    v.onRamp = true;
+                    v.rampProgress = 0;
+                    v.speed = CONFIG.idm.v0Ramp;
+                    v.onAccelLane = false;
+                    tradVehicles.push(v);
+                    lastSpawnTime.tradRamp = frameCount;
+                    // v1.2: 如果有待生成车辆，减少计数
+                    if (pendingRampVehicles.trad > 0) {
+                        pendingRampVehicles.trad--;
+                    }
+                } else if (!canSpawn || isAccelLaneFull) {
+                    // v1.2: 加速车道满或入口堵塞，累计待生成车辆
+                    pendingRampVehicles.trad++;
+                    lastSpawnTime.tradRamp = frameCount;  // 重置计时，避免瞬间累积大量待生成
+                }
+            }
+
+            // FSAR - 主线
+            if (frameCount - lastSpawnTime.fsar >= level.spawnInterval) {
+                const lane = Math.floor(Math.random() * CONFIG.laneCount);
+                const canSpawn = !fsarVehicles.some(v =>
+                    v.x < 60 && v.lane === lane && !v.onRamp
+                );
+                if (canSpawn) {
+                    const v = new Vehicle(-CONFIG.carLength, 0, lane, 'main');
+                    v.y = v.getLaneY();
+                    // 最外侧车道车辆初始化FSM
+                    if (lane === CONFIG.laneCount - 1) {
+                        fsarTotalOuterLane++;
+                        if (Math.random() < CONFIG.fsm.naturalExitRatio) {
+                            v.wantsMainline = false;
+                            v.fsmState = FSM.RELIEF;
+                            v.type = 'exit';
+                            // 注意：自然出口车辆在初始化时不计数，等实际进入匝道时计数
+                        } else {
+                            v.wantsMainline = true;
+                            v.fsmState = FSM.APPROACH;
+                        }
+                    }
+                    fsarVehicles.push(v);
+                    lastSpawnTime.fsar = frameCount;
+                }
+            }
+
+            // FSAR - 匝道
+            if (frameCount - lastSpawnTime.fsarRamp >= level.rampInterval) {
+                const canSpawn = !fsarVehicles.some(v =>
+                    v.onRamp && v.type === 'ramp' && v.rampProgress < 0.25
+                );
+                if (canSpawn) {
+                    const rampEndY = CONFIG.roadY + CONFIG.laneHeight * CONFIG.laneCount;
+                    // 匝道起点与绘制对齐
+                    const rampStartX = CONFIG.fsarEntryX - 70;
+                    const rampStartY = rampEndY + 100;
+                    const v = new Vehicle(rampStartX, rampStartY, CONFIG.laneCount - 1, 'ramp');
+                    v.onRamp = true;
+                    v.rampProgress = 0;
+                    v.fsmState = FSM.ZF_MERGE;
+                    v.speed = CONFIG.idm.v0Ramp;
+                    fsarVehicles.push(v);
+                    lastSpawnTime.fsarRamp = frameCount;
+                }
+            }
+        }
+
+        // ========== 更新传统结构车辆 ==========
+        function updateTraditionalVehicles() {
+            const rampEndY = CONFIG.roadY + CONFIG.laneHeight * CONFIG.laneCount;
+
+            tradVehicles.forEach(v => {
+                // 更新冷却计时
+                if (v.congestionAvoidCooldown > 0) v.congestionAvoidCooldown--;
+
+                if (v.onRamp && v.type === 'ramp') {
+                    // 匝道车辆进入加速车道的过程
+                    // 匝道绘制路径对齐：从 (startX, startY) 经 (midX, midY) 到 (endX, endY)
+                    const startX = CONFIG.tradAccelLaneStart - 90;
+                    const startY = rampEndY + CONFIG.tradRampLength;
+                    const midX = CONFIG.tradAccelLaneStart - 35;
+                    const midY = rampEndY + CONFIG.laneHeight * 0.7;
+                    const endX = CONFIG.tradAccelLaneStart + 8;
+                    const endY = rampEndY + CONFIG.laneHeight * 0.4;
+
+                    // v1.4: 改进匝道车辆跟驰逻辑 - 基于实际距离而非进度
+                    // 找到匝道上前方最近的车辆
+                    const rampLead = tradVehicles.filter(ov =>
+                        ov !== v && ov.onRamp && ov.type === 'ramp' &&
+                        ov.rampProgress > v.rampProgress
+                    ).sort((a, b) => a.rampProgress - b.rampProgress)[0];
+
+                    // 计算与前车的实际距离（基于进度差估算）
+                    const rampLength = 120;  // 匝道大致长度
+                    const progressDiff = rampLead ? rampLead.rampProgress - v.rampProgress : 1;
+                    const estimatedDist = progressDiff * rampLength;
+
+                    // 检查加速车道入口是否有车辆
+                    const accelEntryVehicle = tradVehicles.filter(ov =>
+                        ov !== v && (ov.onAccelLane || ov.type === 'accel') &&
+                        !ov.isMergingToMainline
+                    ).sort((a, b) => a.x - b.x)[0];
+                    // v1.4.2 fix: 扩大入口检测范围，确保入口区域完全空闲
+                    const entryZoneEnd = CONFIG.tradAccelLaneStart + CONFIG.carLength + 25;  // 扩大到 carLength+25
+                    const accelEntryBlocked = accelEntryVehicle && accelEntryVehicle.x < entryZoneEnd;
+
+                    // v1.4: 匝道安全距离
+                    const rampMinGap = CONFIG.carLength + 5;
+                    const rampSafeGap = CONFIG.carLength + 15;
+
+                    // v1.4: 决定匝道行驶速度和进度增量
+                    let rampSpeedFactor = 1.0;
+                    let progressIncrement = 0.012;  // 基础进度增量
+
+                    if (rampLead && estimatedDist < rampMinGap) {
+                        // 太近前车，完全停止
+                        rampSpeedFactor = 0;
+                        progressIncrement = 0;
+                    } else if (rampLead && estimatedDist < rampSafeGap) {
+                        // 接近前车，减速跟车
+                        rampSpeedFactor = 0.3;
+                        progressIncrement = 0.003;
+                    } else if (accelEntryBlocked && v.rampProgress > 0.75) {
+                        // 接近入口但被堵，减速
+                        rampSpeedFactor = 0.2;
+                        progressIncrement = 0.002;
+                    } else if (accelEntryBlocked && v.rampProgress > 0.60) {
+                        // 接近堵塞入口，减速
+                        rampSpeedFactor = 0.5;
+                        progressIncrement = 0.006;
+                    }
+
+                    // v1.4: 限制进度不超过1.0（防止溢出）
+                    const newProgress = Math.min(v.rampProgress + progressIncrement, 1.0);
+
+                    // v1.4: 如果入口堵塞且已到达末端，保持在匝道末端等待
+                    if (accelEntryBlocked && v.rampProgress >= 0.95) {
+                        v.rampProgress = 0.95;  // 保持在末端等待
+                        v.speed = 0;
+                    } else {
+                        v.rampProgress = newProgress;
+                        v.speed = CONFIG.idm.v0Ramp * rampSpeedFactor;
+                    }
+
+                    // 使用二次贝塞尔曲线更新位置
+                    const smoothProgress = (1 - Math.cos(v.rampProgress * Math.PI)) / 2;
+                    const t = smoothProgress;
+                    const oneMinusT = 1 - t;
+                    v.x = oneMinusT * oneMinusT * startX + 2 * oneMinusT * t * midX + t * t * endX;
+                    v.y = oneMinusT * oneMinusT * startY + 2 * oneMinusT * t * midY + t * t * endY;
+
+                    // v1.4.2 fix: 进入加速车道 - 双重安全检查
+                    if (v.rampProgress >= 1.0) {
+                        // 再次检测入口是否有车辆（使用更严格的检测）
+                        const entryStrictCheck = tradVehicles.some(ov =>
+                            ov !== v && (ov.onAccelLane || ov.type === 'accel') &&
+                            !ov.isMergingToMainline &&
+                            ov.x < CONFIG.tradAccelLaneStart + CONFIG.carLength + 10  // 严格检测
+                        );
+
+                        if (!entryStrictCheck) {
+                            v.onRamp = false;
+                            v.onAccelLane = true;
+                            v.x = CONFIG.tradAccelLaneStart + 5;
+                            v.y = rampEndY + CONFIG.laneHeight * 0.4;
+                            v.type = 'accel';
+                            v.speed = CONFIG.idm.v0Ramp;  // 使用保守速度进入
+                            v.waitingToMerge = false;
+                            v.mergeWaitFrames = 0;
+                        } else {
+                            // 入口仍有车，保持在匝道末端等待
+                            v.rampProgress = 0.95;
+                            v.speed = 0;
+                        }
+                    }
+                } else if (v.onAccelLane || v.type === 'accel') {
+                    // 在加速车道上行驶
+                    const accelEnd = CONFIG.tradAccelLaneStart + CONFIG.tradAccelLaneLength;
+                    const accelLaneY = rampEndY + CONFIG.laneHeight * 0.4;
+
+                    // 强制约束Y坐标在加速车道上
+                    if (!v.isMergingToMainline) {
+                        v.y = accelLaneY;
+                    }
+
+                    // v1.2: 加速车道末端硬性边界 - 必须完全停止
+                    const hardStopX = accelEnd - 3;  // 硬性停止线
+                    if (v.x >= hardStopX && !v.isMergingToMainline) {
+                        v.x = hardStopX;  // 强制限位
+                        v.speed = 0;      // 完全停止
+                        v.waitingToMerge = true;
+                    }
+
+                    // 强制约束X坐标不超过加速车道末端
+                    if (v.x >= accelEnd - 5 && !v.isMergingToMainline) {
+                        v.x = Math.min(v.x, accelEnd - 5);
+                    }
+
+                    // v1.4: 如果正在等待汇入（仅在强制等待区）
+                    if (v.waitingToMerge && !v.isMergingToMainline) {
+                        // v1.4: 持续累加等待计时
+                        v.mergeWaitFrames++;
+
+                        const wouldCollide = willCollide(v, tradVehicles);
+                        const hasPriority = zipperPriority(v, tradVehicles);
+
+                        // 超时强制合流检查
+                        const forceNow = shouldForceMerge(v) && checkForceMergeGap(v, tradVehicles);
+
+                        if (forceNow || (!wouldCollide && hasPriority)) {
+                            // 开始并入
+                            v.isMergingToMainline = true;
+                            v.waitingToMerge = false;
+                            v.mergeProgress = 0;
+                            v.mergeWaitFrames = 0;
+                            v.turnSignalActive = true;
+                            lastPassedType = 'ramp';
+                            mainPassCount = 0;
+
+                            if (forceNow) {
+                                applyMainlineYield(v, tradVehicles);
+                            }
+                        } else {
+                            // 等待中触发主线让行（如果有优先权）
+                            if (hasPriority) {
+                                applyMainlineYield(v, tradVehicles);
+                            }
+                            // 等待中逐渐减速
+                            v.speed = Math.max(0, v.speed * 0.9);
+                        }
+                    }
+
+                    // v1.4: 加速车道内跟驰与运动逻辑 - 参照主干道算法
+                    // 找到加速车道上前方最近的车辆
+                    const accelLaneLead = tradVehicles.filter(ov =>
+                        ov !== v && (ov.onAccelLane || ov.type === 'accel') &&
+                        !ov.isMergingToMainline &&
+                        ov.x > v.x
+                    ).sort((a, b) => a.x - b.x)[0];
+
+                    const leadDist = accelLaneLead ? accelLaneLead.x - v.x : 999;
+
+                    // v1.4: 更严格的安全距离定义
+                    const hardMinDistance = CONFIG.carLength + 2;   // 绝对最小（不允许穿模）
+                    const minSafeDistance = CONFIG.carLength + 6;   // 安全停车距离
+                    const comfortDistance = CONFIG.carLength + 15;  // 舒适跟车距离
+
+                    // v1.4: 首先进行硬性穿模检查
+                    if (accelLaneLead && leadDist <= hardMinDistance) {
+                        // 绝对不允许穿模 - 强制回退并停止
+                        v.x = accelLaneLead.x - hardMinDistance - 2;
+                        v.speed = 0;
+                    } else if (accelLaneLead && leadDist < minSafeDistance) {
+                        // 太近，完全停止
+                        v.speed = 0;
+                    } else if (accelLaneLead && leadDist < comfortDistance) {
+                        // 接近安全距离，严格跟车
+                        v.speed = Math.max(0, accelLaneLead.speed * 0.6);
+                    } else if (v.waitingToMerge) {
+                        // 在等待区等待时的行为
+                        if (accelLaneLead && leadDist < comfortDistance * 2) {
+                            v.speed = Math.max(0, accelLaneLead.speed * 0.8);
+                        } else {
+                            v.speed = Math.max(0, v.speed * 0.85);
+                        }
+                    } else if (!v.isMergingToMainline) {
+                        // 正常行驶区 - 使用IDM加速
+                        const targetSpeed = CONFIG.idm.v0Main * 0.65;  // 目标速度：主线的65%
+                        v.acceleration = computeIDMAcceleration(v, accelLaneLead, leadDist, targetSpeed);
+                        v.speed = Math.max(0.2, Math.min(v.speed + v.acceleration, targetSpeed));
+                    }
+
+                    // v1.4: 移动前最终穿模检查
+                    let finalSpeed = v.speed;
+                    if (accelLaneLead) {
+                        const projectedDist = accelLaneLead.x - (v.x + v.speed);
+                        if (projectedDist < hardMinDistance) {
+                            finalSpeed = Math.max(0, accelLaneLead.x - v.x - hardMinDistance - 1);
+                        }
+                    }
+
+                    // 边界检查
+                    if (v.x + finalSpeed >= accelEnd - 3 && !v.isMergingToMainline) {
+                        finalSpeed = Math.max(0, accelEnd - 3 - v.x);
+                    }
+
+                    v.speed = finalSpeed;
+                    v.x += v.speed;
+
+                    // 统计停车
+                    if (v.speed < 0.1 && !v.wasStopped) {
+                        v.stopCount++;
+                        v.wasStopped = true;
+                    } else if (v.speed >= 0.1) {
+                        v.wasStopped = false;
+                    }
+
+                    // 如果正在执行变道动画，更新动画并检测冲突
+                    if (v.isMergingToMainline) {
+                        // 先检测是否会与主线车辆碰撞
+                        const conflictingMain = tradVehicles.find(mv =>
+                            mv !== v &&
+                            !mv.onRamp && !mv.onAccelLane && mv.type === 'main' &&
+                            mv.lane === CONFIG.laneCount - 1 &&
+                            Math.abs(mv.x - v.x) < CONFIG.carLength * 1.0  // 车身范围内
+                        );
+
+                        if (conflictingMain && v.mergeProgress < 0.4) {
+                            // 变道未超过40%且有冲突，开始回退
+                            v.isMergingToMainline = false;
+                            v.isReturningToLane = true;
+                            v.waitingToMerge = true;
+                            v.mergeAttempts++;
+                            // 减速避让
+                            v.speed = Math.max(0.1, v.speed * 0.5);
+
+                            // v3.1-X: 触发上游刹车波传播（新增）
+                            propagateBrakeWave(conflictingMain, tradVehicles, conflictingMain.lane);
+                        } else if (conflictingMain && v.mergeProgress >= 0.4) {
+                            // 变道已超过40%，继续但减速
+                            v.speed = Math.max(0.1, Math.min(v.speed, conflictingMain.speed * 0.8));
+                            v.mergeProgress += 0.012;  // 减慢变道速度
+                        } else {
+                            // 正常变道
+                            v.mergeProgress += 0.02;
+                        }
+
+                        const accelLaneY = rampEndY + CONFIG.laneHeight * 0.4;
+                        const mainLaneY = CONFIG.roadY + (CONFIG.laneCount - 1) * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+                        // 使用余弦插值平滑变道
+                        const smoothProgress = (1 - Math.cos(Math.min(v.mergeProgress, 1) * Math.PI)) / 2;
+                        v.y = accelLaneY + (mainLaneY - accelLaneY) * smoothProgress;
+
+                        if (v.mergeProgress >= 1) {
+                            // 变道完成
+                            v.onAccelLane = false;
+                            v.isMergingToMainline = false;
+                            v.waitingToMerge = false;
+                            v.type = 'main';
+                            v.lane = CONFIG.laneCount - 1;
+                            v.y = mainLaneY;
+                            // v1.4 fix: 修复变量名 - 使用正确的 lastPassedType
+                            lastPassedType = 'ramp';
+                            mainPassCount = 0;
+                        }
+                    }
+
+                    // v1.4.3: 处理渐进回退到加速车道
+                    if (v.isReturningToLane && v.mergeProgress > 0) {
+                        // 逐帧减少进度，平滑回退
+                        v.mergeProgress = Math.max(0, v.mergeProgress - 0.03);
+
+                        // 更新Y坐标（使用相同的插值公式）
+                        const accelLaneY = rampEndY + CONFIG.laneHeight * 0.4;
+                        const mainLaneY = CONFIG.roadY + (CONFIG.laneCount - 1) * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+                        const smoothProgress = (1 - Math.cos(Math.min(v.mergeProgress, 1) * Math.PI)) / 2;
+                        v.y = accelLaneY + (mainLaneY - accelLaneY) * smoothProgress;
+
+                        // 回退完成
+                        if (v.mergeProgress <= 0) {
+                            v.isReturningToLane = false;
+                            v.mergeProgress = 0;
+                        }
+                    }
+
+                    // v1.3: 改进的平行式加速车道合流逻辑
+                    // 定义关键位置
+                    const mergeZoneStart = CONFIG.tradAccelLaneStart + CONFIG.tradAccelLaneLength * 0.3;  // 前30%为加速区
+                    const forcedWaitZone = CONFIG.tradAccelLaneStart + CONFIG.tradAccelLaneLength * 0.7;  // 后30%为强制等待区
+                    const hardStopLine = accelEnd - 5;  // 绝对停止线
+
+                    // 检查是否可以并入主线
+                    if (!v.isMergingToMainline && !v.waitingToMerge) {
+                        if (v.x >= mergeZoneStart) {
+                            // 进入合流观察区，开始寻找间隙
+                            const wouldCollide = willCollide(v, tradVehicles);
+                            const hasPriority = zipperPriority(v, tradVehicles);
+
+                            if (!wouldCollide && hasPriority) {
+                                // 有间隙且有优先权，择机并入
+                                v.isMergingToMainline = true;
+                                v.mergeProgress = 0;
+                                v.mergeWaitFrames = 0;
+                                v.turnSignalActive = true;
+                                lastPassedType = 'ramp';
+                                mainPassCount = 0;
+                            }
+                            // 注意：在前段区域即使没找到间隙也不设置waitingToMerge，继续正常行驶
+                        }
+                    }
+
+                    // v1.3: 进入强制等待区后的处理
+                    if (v.x >= forcedWaitZone && !v.isMergingToMainline) {
+                        // 进入强制等待区，必须等待合流机会
+                        const wouldCollide = willCollide(v, tradVehicles);
+                        const hasPriority = zipperPriority(v, tradVehicles);
+                        const forceGapOk = checkForceMergeGap(v, tradVehicles);
+
+                        // v1.1+v1.3: 超时强制合流检查
+                        const forceNow = shouldForceMerge(v) && forceGapOk;
+
+                        if (forceNow || (!wouldCollide && hasPriority)) {
+                            // 开始并入
+                            v.isMergingToMainline = true;
+                            v.waitingToMerge = false;
+                            v.mergeProgress = 0;
+                            v.mergeWaitFrames = 0;
+                            v.turnSignalActive = true;
+                            lastPassedType = 'ramp';
+                            mainPassCount = 0;
+                            if (forceNow) {
+                                applyMainlineYield(v, tradVehicles);
+                            }
+                        } else {
+                            // 设置等待状态，准备交替合流
+                            v.waitingToMerge = true;
+                            v.mergeWaitFrames++;
+                            if (hasPriority) {
+                                applyMainlineYield(v, tradVehicles);
+                            }
+                        }
+                    }
+
+                    // v1.3: 到达绝对停止线必须停止
+                    if (v.x >= hardStopLine && !v.isMergingToMainline) {
+                        v.x = hardStopLine;
+                        v.speed = 0;
+                        v.waitingToMerge = true;
+                    }
+                } else {
+                    // 主线车辆
+                    const conflictZoneStart = CONFIG.tradAccelLaneStart;
+                    const conflictZoneEnd = CONFIG.tradAccelLaneStart + CONFIG.tradAccelLaneLength;
+
+                    // 减速带区域：最外侧车道车辆进入减速带时降速
+                    if (v.lane === CONFIG.laneCount - 1 &&
+                        v.x >= CONFIG.tradDecelerationZoneStart &&
+                        v.x < CONFIG.tradDecelerationZoneEnd) {
+                        const maxSpeedInDecel = CONFIG.idm.v0Main * CONFIG.tradDecelerationFactor;
+                        if (v.speed > maxSpeedInDecel) {
+                            v.acceleration = -CONFIG.idm.bComfort * 0.8;
+                            v.speed = Math.max(maxSpeedInDecel, v.speed + v.acceleration);
+                        }
+                    }
+
+                    // 拉链合并：主线车在冲突区检测匝道车并让行
+                    if (v.lane === CONFIG.laneCount - 1 &&
+                        v.x >= conflictZoneStart - 40 &&
+                        v.x <= conflictZoneEnd + 10) {
+
+                        // 找到冲突区内的匝道车
+                        const rampInConflict = tradVehicles.find(rv =>
+                            (rv.onAccelLane || rv.type === 'accel') &&
+                            rv.x >= v.x - 40 && rv.x <= v.x + 60
+                        );
+
+                        if (rampInConflict) {
+                            // 检查拉链优先级：匝道车是否有优先权
+                            const rampHasPriority = zipperPriority(rampInConflict, tradVehicles);
+
+                            if (rampHasPriority || rampInConflict.isMergingToMainline) {
+                                // 匝道车有优先权或正在汇入 → 主线车必须让行
+                                // 让行方式：减速到比匝道车稍慢，创造间隙
+                                const targetSpeed = Math.max(0.3, rampInConflict.speed * 0.6);
+                                v.acceleration = -CONFIG.idm.bComfort * 1.5;
+                                v.speed = Math.max(targetSpeed, v.speed + v.acceleration);
+                            }
+                            // 匝道车没有优先权 → 主线车正常行驶，匝道车等待
+                        }
+                    }
+
+                    // 通过冲突区后更新拉链状态
+                    if (v.lane === CONFIG.laneCount - 1 &&
+                        v.x >= conflictZoneEnd - 5 && !v.passedConflict) {
+                        lastPassedType = 'main';  // 拉链状态更新
+                        mainPassCount++;           // 增加主线计数
+                        v.passedConflict = true;
+                    }
+
+                    // v3.2-X: 所有车道统一使用避堵变道逻辑
+                    if (v.lane !== CONFIG.laneCount - 1) {
+                        // 非最外侧车道：正常避堵变道
+                        tryAvoidCongestionLaneChange(v, tradVehicles, false);
+                    } else {
+                        // 最外侧车道：增加安全约束的避堵变道
+                        // 约束1：远离冲突区（避免在合流点附近变道）
+                        const farFromConflict = v.x < CONFIG.tradAccelLaneStart - 150;
+
+                        if (farFromConflict) {
+                            // 使用标准避堵变道逻辑（基于MOBIL模型和个性化意愿）
+                            tryAvoidCongestionLaneChange(v, tradVehicles, false);
+                        } else {
+                            // 接近冲突区：保持在最外侧车道（为加速车道车辆让路）
+                            // 不尝试变道
+                        }
+                    }
+
+                    // 正常IDM跟驰
+                    applyIDMAndMove(v, tradVehicles, CONFIG.idm.v0Main);
+                    updateLaneChange(v);
+                }
+            });
+
+            // 移除出界车辆并计数
+            const before = tradVehicles.length;
+            tradVehicles = tradVehicles.filter(v => {
+                if (v.x >= CONFIG.canvasWidth / CONFIG.scale + 10 && !v.onRamp) {
+                    tradPassedCount++;
+                    return false;
+                }
+                return v.x < CONFIG.canvasWidth / CONFIG.scale + 20;
+            });
+        }
+
+        // ========== 更新FSAR结构车辆 ==========
+        function updateFSARVehicles() {
+            const rampEndY = CONFIG.roadY + CONFIG.laneHeight * CONFIG.laneCount;
+
+            fsarVehicles.forEach(v => {
+                // 更新冷却计时
+                if (v.congestionAvoidCooldown > 0) v.congestionAvoidCooldown--;
+
+                if (v.onRamp && v.type === 'ramp') {
+                    // 入匝道车辆 - 进入真空空槽
+                    // 匝道绘制：从 (CONFIG.fsarEntryX - 70, rampEndY + 100) 到 (CONFIG.fsarEntryX + 5, rampEndY)
+                    // 使用余弦插值实现平滑曲线
+                    v.rampProgress += 0.018;
+                    const smoothProgress = (1 - Math.cos(v.rampProgress * Math.PI)) / 2;
+
+                    const startX = CONFIG.fsarEntryX - 70;
+                    const startY = rampEndY + 100;
+                    const midX = CONFIG.fsarEntryX - 30;  // 中间控制点
+                    const midY = rampEndY + 40;
+                    const endX = CONFIG.fsarIsolationEnd + 10;  // 进入真空空槽起点
+                    const endY = CONFIG.roadY + CONFIG.laneHeight * 2.5;
+
+                    // 二次贝塞尔曲线插值
+                    const t = smoothProgress;
+                    const oneMinusT = 1 - t;
+                    v.x = oneMinusT * oneMinusT * startX + 2 * oneMinusT * t * midX + t * t * endX;
+                    v.y = oneMinusT * oneMinusT * startY + 2 * oneMinusT * t * midY + t * t * endY;
+
+                    if (v.rampProgress >= 1) {
+                        v.onRamp = false;
+                        v.lane = CONFIG.laneCount - 1;
+                        v.y = CONFIG.roadY + v.lane * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+                        v.type = 'main';
+                        v.fsmState = FSM.ZF_MERGE;
+                        v.inVacuumSlot = true;
+                        v.speed = CONFIG.idm.v0Ramp * 1.2;
+                    }
+                } else if (v.inVacuumSlot) {
+                    // 在真空空槽中 - 无干扰全速加速！
+                    const vacuumEnd = CONFIG.fsarIsolationEnd + CONFIG.fsarAccelLaneLength;
+
+                    // 前方完全无阻挡（隔离区保证了空槽为真空），全力加速
+                    v.acceleration = CONFIG.idm.aMax * 1.2;  // 最大加速
+                    v.speed = Math.min(v.speed + v.acceleration, CONFIG.idm.v0Main);
+                    v.x += v.speed;
+
+                    // 加速至主线速度后，标记为正常主线车辆（继续在最外侧车道行驶）
+                    if (v.speed >= CONFIG.idm.v0Main * 0.9) {
+                        v.inVacuumSlot = false;
+                        v.fsmState = FSM.CRUISE;  // 正常巡航状态
+                        // 关键：设置冷却期，防止立即变道！
+                        v.congestionAvoidCooldown = 120;  // 较长冷却期
+                        v.consecutiveSlowFrames = 0;      // 重置低速计数
+                    }
+
+                    // 空槽末端自动切换为正常主线行驶模式
+                    if (v.x >= vacuumEnd && v.inVacuumSlot) {
+                        v.inVacuumSlot = false;
+                        v.fsmState = FSM.CRUISE;
+                        v.congestionAvoidCooldown = 120;
+                        v.consecutiveSlowFrames = 0;
+                    }
+                } else if (v.onRamp && v.type === 'exit') {
+                    // 出匝道车辆（泄压）- 简单线性路径向右下驶出
+                    if (!v.exitStartX) {
+                        v.exitStartX = v.x;
+                        v.exitStartY = v.y || CONFIG.roadY + CONFIG.laneHeight * 2.5;
+                    }
+                    v.rampProgress += 0.025;
+
+                    // 简单线性插值：从起点向右下方驶出
+                    const startX = v.exitStartX;
+                    const startY = v.exitStartY;
+                    const endX = startX + 100;  // 向右移动100px
+                    const endY = rampEndY + 80;  // 向下移动到出口
+
+                    v.x = startX + (endX - startX) * v.rampProgress;
+                    v.y = startY + (endY - startY) * v.rampProgress;
+                } else {
+                    // 主线车辆 - FSM状态机驱动
+                    updateFSARFSM(v);
+
+                    // 只有已稳定的车辆才可以尝试避堵变道
+                    // ZF_MERGE状态的车辆刚从匝道进入，不应立即变道
+                    // FSM.NONE是非最外侧车道车辆，FSM.CRUISE是稳定行驶车辆
+                    if ((v.fsmState === FSM.NONE || v.fsmState === FSM.CRUISE) &&
+                        v.lane !== CONFIG.laneCount - 1) {  // 最外侧车道车辆不主动避堵变道到中间车道
+                        tryAvoidCongestionLaneChange(v, fsarVehicles, true);
+                    }
+
+                    applyIDMAndMove(v, fsarVehicles, CONFIG.idm.v0Main);
+                    updateLaneChange(v);
+                }
+
+                // 统一泄压计数检查（放在循环末尾）
+                if (v.type === 'exit' && v.onRamp && !v.reliefCounted) {
+                    fsarReliefCount++;
+                    v.reliefCounted = true;
+                }
+            });
+
+            // 移除出界车辆
+            fsarVehicles = fsarVehicles.filter(v => {
+                // 出匝道车辆完成泄压后移除
+                if (v.onRamp && v.type === 'exit' && v.rampProgress >= 1) {
+                    return false;
+                }
+                // 主线车辆到达右边界后移除
+                if (v.x >= CONFIG.canvasWidth / CONFIG.scale + 10 && !v.onRamp) {
+                    fsarPassedCount++;
+                    return false;
+                }
+                return v.x < CONFIG.canvasWidth / CONFIG.scale + 20 && v.y < rampEndY + 150;
+            });
+        }
+
+        // ========== 统一泄压计数函数 ==========
+        function countReliefVehicle(v) {
+            if (!v.reliefCounted && v.type === 'exit' && v.onRamp) {
+                fsarReliefCount++;
+                v.reliefCounted = true;
+            }
+        }
+
+        // ========== FSAR 5状态 FSM ==========
+        function updateFSARFSM(v) {
+            if (v.lane !== CONFIG.laneCount - 1 && v.fsmState === FSM.NONE) {
+                // 非最外侧车道且从未进入FSM系统，正常行驶
+                return;
+            }
+
+            switch (v.fsmState) {
+                case FSM.APPROACH:
+                    // 接近预警区
+                    if (v.x >= CONFIG.fsm.warningZoneStart) {
+                        v.fsmState = FSM.SORTING;
+                        v.turnSignalActive = true;
+                    }
+                    break;
+
+                case FSM.SORTING:
+                    // 变道博弈区 - 尝试找间隙并入内侧车道
+                    // 如果已经在变道中，不再尝试新的变道
+                    if (v.isChangingLane) {
+                        break;
+                    }
+                    v.turnSignalActive = true;
+                    if (checkGapAcceptance(v, CONFIG.laneCount - 2, fsarVehicles)) {
+                        // 有间隙，启动变道
+                        startLaneChange(v, CONFIG.laneCount - 2);
+                        v.fsmState = FSM.CRUISE;
+                        v.turnSignalActive = false;
+                    } else if (v.x >= CONFIG.fsm.solidLineX) {
+                        // 到达实线区，变道失败
+                        v.fsmState = FSM.DECISION;
+                    }
+                    break;
+
+                case FSM.DECISION:
+                    // 变道失败确认 → 强制泄压
+                    v.forcedRelief = true;
+                    v.turnSignalActive = false;
+                    v.fsmState = FSM.RELIEF;
+                    v.type = 'exit';
+                    // 移除旧的计数逻辑，改用统一计数
+                    break;
+
+                case FSM.RELIEF:
+                    // 沿最外侧车道行驶至出匝道分流点
+                    if (v.x >= CONFIG.fsm.exitDeadlineX && !v.onRamp) {
+                        v.onRamp = true;
+                        v.rampProgress = 0;
+                        v.exitStartX = v.x;
+                        v.exitStartY = v.y;
+                        countReliefVehicle(v);  // 统一计数
+                    }
+                    break;
+
+                case FSM.CRUISE:
+                    // 正常IDM跟驰，可根据实际需要变道（主动避堵）
+                    // 不强制变道，像普通主线车辆一样行驶
+                    break;
+
+                case FSM.ZF_MERGE:
+                    // 零摩擦汇入完成后，继续在最外侧车道正常行驶
+                    // 不主动变道到内侧车道！利用最外侧车道资源
+                    // 只有在需要主动避堵时才会通过tryAvoidCongestionLaneChange变道
+                    if (!v.onRamp && !v.inVacuumSlot) {
+                        v.fsmState = FSM.CRUISE;  // 转为正常巡航状态
+                    }
+                    break;
+
+                case FSM.NONE:
+                    // 非最外侧车道车辆，无FSM
+                    break;
+            }
+
+            // 安全机制：上游车辆绝对不能进入隔离区
+            // 注意：只对从上游接近隔离区的车辆生效，不影响下游入匝道车辆
+            if (v.lane === CONFIG.laneCount - 1 &&
+                v.x >= CONFIG.fsarIsolationStart - CONFIG.carLength &&
+                v.x < CONFIG.fsarIsolationEnd &&
+                !v.onRamp &&
+                v.fsmState !== FSM.ZF_MERGE &&
+                !v.inVacuumSlot) {
+                // 已到达隔离区边界，必须立即进入出匝道
+                v.fsmState = FSM.RELIEF;
+                v.type = 'exit';
+                v.forcedRelief = true;
+                v.onRamp = true;
+                v.rampProgress = 0;
+                // 初始化出口起点位置
+                v.exitStartX = v.x;
+                v.exitStartY = v.y;
+                countReliefVehicle(v);  // 统一计数
+            }
+
+            // 正在变道的车辆如果会穿过隔离区或在锁定区内变道到最外侧，取消变道
+            // 只在变道进度未超过50%时才能取消（防止抖动反弹）
+            if (v.isChangingLane && v.laneChangeTo === CONFIG.laneCount - 1 && v.laneChangeProgress < 0.5) {
+                // 锁定区之后不允许变道到最外侧车道
+                if (v.x >= CONFIG.fsm.solidLineX) {
+                    v.isChangingLane = false;
+                    v.lane = v.laneChangeFrom;
+                    v.laneChangeProgress = 0;
+                    v.y = CONFIG.roadY + v.lane * CONFIG.laneHeight + CONFIG.laneHeight / 2;
+                }
+            }
+
+            // 最外侧车道的车辆如果在锁定区内且未进入泄压状态，强制处理
+            if (v.lane === CONFIG.laneCount - 1 &&
+                v.x >= CONFIG.fsm.solidLineX &&
+                v.x < CONFIG.fsarIsolationStart &&
+                !v.onRamp &&
+                !v.isChangingLane &&
+                v.fsmState !== FSM.RELIEF &&
+                v.fsmState !== FSM.ZF_MERGE) {
+                // 在锁定区内必须立即变道或进入泄压
+                if (checkGapAcceptance(v, CONFIG.laneCount - 2, fsarVehicles)) {
+                    startLaneChange(v, CONFIG.laneCount - 2);
+                    v.fsmState = FSM.CRUISE;
+                } else {
+                    // 无间隙，进入泄压流程
+                    v.fsmState = FSM.RELIEF;
+                    v.type = 'exit';
+                    // 注意：这里不立即设置 onRamp，等到达 exitDeadlineX 时才设置
+                }
+            }
+        }
+
+        // ========== 绘制车辆 ==========
+        function drawVehicles(ctx, vehicles) {
+            vehicles.forEach(v => {
+                ctx.save();
+                ctx.fillStyle = v.getColor();
+
+                let drawX = v.x * CONFIG.scale;  // 应用缩放
+                let drawY = v.y;
+
+                // 车辆（圆角矩形）
+                const w = CONFIG.carLength;
+                const h = CONFIG.carWidth;
+                const r = 2;  // 圆角半径缩小
+                ctx.beginPath();
+                ctx.moveTo(drawX - w/2 + r, drawY - h/2);
+                ctx.lineTo(drawX + w/2 - r, drawY - h/2);
+                ctx.quadraticCurveTo(drawX + w/2, drawY - h/2, drawX + w/2, drawY - h/2 + r);
+                ctx.lineTo(drawX + w/2, drawY + h/2 - r);
+                ctx.quadraticCurveTo(drawX + w/2, drawY + h/2, drawX + w/2 - r, drawY + h/2);
+                ctx.lineTo(drawX - w/2 + r, drawY + h/2);
+                ctx.quadraticCurveTo(drawX - w/2, drawY + h/2, drawX - w/2, drawY + h/2 - r);
+                ctx.lineTo(drawX - w/2, drawY - h/2 + r);
+                ctx.quadraticCurveTo(drawX - w/2, drawY - h/2, drawX - w/2 + r, drawY - h/2);
+                ctx.closePath();
+                ctx.fill();
+
+                // 车头指示
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fillRect(drawX + w/2 - 3, drawY - 1.5, 2, 3);
+
+                // 转向灯闪烁（SORTING状态或正在变道）
+                if ((v.turnSignalActive || v.isChangingLane) && Math.floor(frameCount / 10) % 2 === 0) {
+                    ctx.fillStyle = '#f1c40f';
+                    // 根据变道方向显示转向灯
+                    if (v.isChangingLane) {
+                        if (v.laneChangeTo < v.laneChangeFrom) {
+                            // 向内侧变道（左转向灯）
+                            ctx.beginPath();
+                            ctx.arc(drawX - w/2 - 2, drawY - 1.5, 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        } else {
+                            // 向外侧变道（右转向灯）
+                            ctx.beginPath();
+                            ctx.arc(drawX - w/2 - 2, drawY + 1.5, 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(drawX - w/2 - 2, drawY, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // 强制泄压标记
+                if (v.forcedRelief) {
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.font = 'bold 10px Arial';
+                    ctx.fillText('!', drawX - 2, drawY - h/2 - 3);
+                }
+
+                // 驾驶员个性指示（小型标记）
+                if (v.consecutiveSlowFrames > 10 && !v.onRamp) {
+                    // 显示拥堵中的车辆状态
+                    let indicatorColor;
+                    switch (v.personality) {
+                        case 'aggressive':
+                            indicatorColor = '#e74c3c'; // 红色：激进，想变道
+                            break;
+                        case 'patient':
+                            indicatorColor = '#3498db'; // 蓝色：耐心，愿意等
+                            break;
+                        default:
+                            indicatorColor = '#f39c12'; // 橙色：普通
+                    }
+                    ctx.fillStyle = indicatorColor;
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY - h/2 - 3, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            });
+        }
+
+        // ========== 统计辅助函数 ==========
+        // 记录每帧的平均速度
+        function recordSpeedFrame(vehicles, stats) {
+            let totalSpeed = 0, count = 0;
+            vehicles.forEach(v => {
+                if (!v.onRamp) {
+                    totalSpeed += (v.speed / CONFIG.idm.v0Main) * 80;
+                    count++;
+                }
+            });
+            const frameAvgSpeed = count > 0 ? totalSpeed / count : 0;
+
+            stats.speedHistory.push(frameAvgSpeed);
+            if (stats.speedHistory.length > WINDOW_SIZE) {
+                stats.speedHistory.shift();  // 移除最旧的数据
+            }
+        }
+
+        // 记录每帧的车辆停车次数快照
+        function recordStopFrame(vehicles, stats, frameCount) {
+            const vehicleStops = {};  // {vehicleId: stopCount}
+            let count = 0;
+
+            vehicles.forEach(v => {
+                if (!v.onRamp) {
+                    vehicleStops[v.id] = v.stopCount;
+                    count++;
+                }
+            });
+
+            stats.vehicleSnapshots.push({
+                frame: frameCount,
+                vehicleStops: vehicleStops,
+                vehicleCount: count
+            });
+
+            if (stats.vehicleSnapshots.length > WINDOW_SIZE) {
+                stats.vehicleSnapshots.shift();
+            }
+        }
+
+        // 计算30秒窗口内的平均速度
+        function getWindowAvgSpeed(stats) {
+            if (stats.speedHistory.length === 0) return 0;
+            const sum = stats.speedHistory.reduce((a, b) => a + b, 0);
+            return sum / stats.speedHistory.length;
+        }
+
+        // 计算30秒窗口内的平均停车次数
+        function getWindowAvgStops(stats) {
+            if (stats.vehicleSnapshots.length === 0) return 0;
+
+            // 收集窗口内所有出现过的车辆
+            const vehicleStopData = {};  // {vehicleId: {first: stopCount, last: stopCount}}
+
+            stats.vehicleSnapshots.forEach(snapshot => {
+                Object.entries(snapshot.vehicleStops).forEach(([id, stops]) => {
+                    if (!vehicleStopData[id]) {
+                        vehicleStopData[id] = {first: stops, last: stops};
+                    } else {
+                        vehicleStopData[id].last = stops;
+                    }
+                });
+            });
+
+            // 计算每辆车在窗口内的停车次数增量
+            let totalWindowStops = 0;
+            let vehicleCount = 0;
+            Object.values(vehicleStopData).forEach(data => {
+                totalWindowStops += (data.last - data.first);
+                vehicleCount++;
+            });
+
+            return vehicleCount > 0 ? totalWindowStops / vehicleCount : 0;
+        }
+
+        // ========== 实时统计 ==========
+        function updateStats() {
+            // 传统结构
+            const tradAvgSpeed = getWindowAvgSpeed(tradStats).toFixed(1);
+            const tradAvgStops = getWindowAvgStops(tradStats).toFixed(2);
+            document.getElementById('tradSpeed').textContent = tradAvgSpeed;
+            document.getElementById('tradStops').textContent = tradAvgStops;
+            document.getElementById('tradFlow').textContent = tradPassedCount;
+
+            // 运行状态判断（基于30秒平均速度）
+            let tradStatus = '--';
+            const tradSpeed = parseFloat(tradAvgSpeed);
+            if (tradSpeed > 0) {
+                if (tradSpeed > 60) tradStatus = '畅通';
+                else if (tradSpeed > 40) tradStatus = '轻度拥堵';
+                else if (tradSpeed > 25) tradStatus = '拥堵';
+                else if (tradSpeed > 15) tradStatus = '紊流';
+                else tradStatus = '崩溃';
+            }
+            document.getElementById('tradStatus').textContent = tradStatus;
+
+            // FSAR结构
+            const fsarAvgSpeed = getWindowAvgSpeed(fsarStats).toFixed(1);
+            const fsarAvgStops = getWindowAvgStops(fsarStats).toFixed(2);
+            document.getElementById('fsarSpeed').textContent = fsarAvgSpeed;
+            document.getElementById('fsarStops').textContent = fsarAvgStops;
+            document.getElementById('fsarFlow').textContent = fsarPassedCount;
+
+            // 计算提效比例
+            if (tradSpeed > 0 && fsarAvgSpeed > 0) {
+                const speedDelta = ((parseFloat(fsarAvgSpeed) - tradSpeed) / tradSpeed * 100).toFixed(1);
+                document.getElementById('speedDelta').textContent = (speedDelta > 0 ? '+' : '') + speedDelta + '%';
+            }
+            if (tradAvgStops > 0 && fsarAvgStops >= 0) {
+                const stopsDelta = ((parseFloat(fsarAvgStops) - parseFloat(tradAvgStops)) / parseFloat(tradAvgStops) * 100).toFixed(1);
+                document.getElementById('stopsDelta').textContent = (stopsDelta > 0 ? '+' : '') + stopsDelta + '%';
+            }
+            if (tradPassedCount > 0 && fsarPassedCount > 0) {
+                const flowDelta = ((fsarPassedCount - tradPassedCount) / tradPassedCount * 100).toFixed(1);
+                document.getElementById('flowDelta').textContent = (flowDelta > 0 ? '+' : '') + flowDelta + '%';
+            }
+
+            // FSAR泄压率
+            if (fsarTotalOuterLane > 0) {
+                const reliefRate = (fsarReliefCount / fsarTotalOuterLane * 100).toFixed(1);
+                document.getElementById('fsarRelief').textContent = reliefRate + '%';
+            }
+
+            // FSAR运行状态判断
+            let fsarStatus = '--';
+            const fsarSpeed = parseFloat(fsarAvgSpeed);
+            if (fsarSpeed > 0) {
+                if (fsarSpeed > 60) fsarStatus = '层流';
+                else if (fsarSpeed > 40) fsarStatus = '畅通';
+                else if (fsarSpeed > 25) fsarStatus = '轻度拥堵';
+                else if (fsarSpeed > 15) fsarStatus = '紊流';
+                else fsarStatus = '崩溃';
+            }
+            document.getElementById('fsarStatus').textContent = fsarStatus;
+
+            // 车辆总数
+            document.getElementById('vehicleCount').textContent = tradVehicles.length + fsarVehicles.length;
+        }
+
+        // ========== 主循环 ==========
+        function animate() {
+            if (!isRunning) return;
+
+            frameCount++;
+            updateFrameCounter();  // 更新帧计数器显示
+
+            spawnVehicles();
+            updateTraditionalVehicles();
+            updateFSARVehicles();
+
+            // 每帧记录统计数据
+            recordSpeedFrame(tradVehicles, tradStats);
+            recordSpeedFrame(fsarVehicles, fsarStats);
+            recordStopFrame(tradVehicles, tradStats, frameCount);
+            recordStopFrame(fsarVehicles, fsarStats, frameCount);
+
+            drawTraditionalRoad(tradCtx);
+            drawVehicles(tradCtx, tradVehicles);
+
+            drawFSARRoad(fsarCtx);
+            drawVehicles(fsarCtx, fsarVehicles);
+
+            // 每60帧更新统计显示，避免UI闪烁
+            if (frameCount % 60 === 0) {
+                updateStats();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // ========== 事件监听 ==========
+        document.getElementById('flowRate').addEventListener('input', function() {
+            document.getElementById('flowValue').textContent = this.value;
+            updateStats();
+        });
+
+        document.getElementById('startBtn').addEventListener('click', function() {
+            if (isRunning) {
+                isRunning = false;
+                this.textContent = '▶ Start / 开始';
+            } else {
+                isRunning = true;
+                this.textContent = '⏸ Pause / 暂停';
+                animate();
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            isRunning = false;
+            tradVehicles = [];
+            fsarVehicles = [];
+            frameCount = 0;
+            displayFrameCount = 0;
+            tradPassedCount = 0;
+            fsarPassedCount = 0;
+            fsarReliefCount = 0;
+            fsarTotalOuterLane = 0;
+            lastSpawnTime = { trad: 0, fsar: 0, tradRamp: 0, fsarRamp: 0 };
+
+            // 重置统计数据
+            nextVehicleId = 0;
+            tradStats.speedHistory = [];
+            tradStats.vehicleSnapshots = [];
+            fsarStats.speedHistory = [];
+            fsarStats.vehicleSnapshots = [];
+
+            document.getElementById('startBtn').textContent = '▶ Start / 开始';
+            document.getElementById('frameCounter').textContent = '0';
+            drawTraditionalRoad(tradCtx);
+            drawFSARRoad(fsarCtx);
+            updateStats();
+        });
+
+        // ========== 初始化 ==========
+        drawTraditionalRoad(tradCtx);
+        drawFSARRoad(fsarCtx);
+        updateStats();
+    </script>
+</body>
+</html>

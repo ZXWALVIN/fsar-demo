@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方案3：高端商业演示风格 - FSAR UI Design</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        /* 顶部品牌区 */
+        .brand-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #0f4c75;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: baseline;
+            gap: 20px;
+        }
+
+        .brand-logo h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 2px;
+        }
+
+        .brand-subtitle {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 1px;
+        }
+
+        .brand-meta {
+            text-align: right;
+        }
+
+        .patent-badge {
+            background: rgba(15, 76, 117, 0.3);
+            border: 1px solid rgba(15, 76, 117, 0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #3bb4c1;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .version-info {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* 主内容区 */
+        .content-wrapper {
+            padding: 50px 60px;
+        }
+
+        /* 标题区 */
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .section-subtitle {
+            font-size: 15px;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        /* 对比视图 */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .simulation-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #e9ecef;
+        }
+
+        .simulation-card.traditional {
+            border-left: 4px solid #e74c3c;
+        }
+
+        .simulation-card.fsar {
+            border-left: 4px solid #0f4c75;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .card-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            color: #7f8c8d;
+        }
+
+        .simulation-canvas {
+            background: #ffffff;
+            border-radius: 8px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .canvas-placeholder {
+            color: #adb5bd;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* 性能指标卡片 */
+        .metrics-section {
+            margin-bottom: 50px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .metric-card {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: #7f8c8d;
+            font-weight: 500;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .metric-comparison {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .metric-value {
+            text-align: center;
+        }
+
+        .metric-number {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .metric-value.traditional .metric-number {
+            color: #e74c3c;
+        }
+
+        .metric-value.fsar .metric-number {
+            color: #0f4c75;
+        }
+
+        .metric-tag {
+            font-size: 11px;
+            color: #95a5a6;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .metric-divider {
+            width: 1px;
+            height: 50px;
+            background: #e9ecef;
+        }
+
+        .improvement-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* 关键优势区 */
+        .advantages-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 12px;
+            padding: 40px;
+            border: 1px solid #e9ecef;
+        }
+
+        .advantages-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+        }
+
+        .advantage-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .advantage-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #0f4c75 0%, #3bb4c1 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 24px;
+            color: white;
+        }
+
+        .advantage-value {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f4c75;
+            margin-bottom: 8px;
+        }
+
+        .advantage-label {
+            font-size: 13px;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        /* 底部信息 */
+        .footer-info {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-text {
+            font-size: 13px;
+            color: #95a5a6;
+        }
+
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f4c75;
+            letter-spacing: 1px;
+        }
+
+        /* 说明文字 */
+        .design-note {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-width: 300px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .design-note h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #3bb4c1;
+        }
+
+        .design-note ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .design-note li {
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .design-note li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #3bb4c1;
+        }
+    </style>
+</head>
+<body>
+    <div class="design-note">
+        <h3>方案3：高端商业演示</h3>
+        <ul>
+            <li>McKinsey/BCG 咨询风格</li>
+            <li>极简布局 + 大数据对比</li>
+            <li>Montserrat + Inter 字体</li>
+            <li>浅灰底 + 商业质感</li>
+            <li>适合投资人演示</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <!-- 品牌头部 -->
+        <div class="brand-header">
+            <div class="brand-logo">
+                <h1>FSAR</h1>
+                <div>
+                    <div class="brand-subtitle">FLUID SEPARATION & ACTIVE RELIEF</div>
+                    <div class="brand-subtitle">流体隔离与主动泄压技术</div>
+                </div>
+            </div>
+            <div class="brand-meta">
+                <div class="patent-badge">PATENT CN202311836940.X</div>
+                <div class="version-info">Micro-Simulation v2.3-L</div>
+            </div>
+        </div>
+
+        <!-- 主内容 -->
+        <div class="content-wrapper">
+            <!-- 标题 -->
+            <div class="section-title">Traffic Flow Simulation Comparison</div>
+            <div class="section-subtitle">Real-time microscopic simulation demonstrating FSAR technology advantages</div>
+
+            <!-- 仿真对比视图 -->
+            <div class="comparison-grid">
+                <div class="simulation-card traditional">
+                    <div class="card-header">
+                        <div class="card-title">Conventional Merge Structure</div>
+                        <div class="card-label">BASELINE</div>
+                    </div>
+                    <div class="simulation-canvas">
+                        <div class="canvas-placeholder">● ● ● Simulation Canvas ● ● ●</div>
+                    </div>
+                </div>
+
+                <div class="simulation-card fsar">
+                    <div class="card-header">
+                        <div class="card-title">FSAR Optimized Structure</div>
+                        <div class="card-label">OPTIMIZED</div>
+                    </div>
+                    <div class="simulation-canvas">
+                        <div class="canvas-placeholder">● ● ● Simulation Canvas ● ● ●</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 性能指标 -->
+            <div class="metrics-section">
+                <div class="section-title">Performance Metrics</div>
+                <div class="section-subtitle">30-second rolling window average</div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Average Speed</div>
+                        <div class="metric-comparison">
+                            <div class="metric-value traditional">
+                                <div class="metric-number">44</div>
+                                <div class="metric-tag">TRAD</div>
+                            </div>
+                            <div class="metric-divider"></div>
+                            <div class="metric-value fsar">
+                                <div class="metric-number">51</div>
+                                <div class="metric-tag">FSAR</div>
+                            </div>
+                        </div>
+                        <div class="improvement-badge">+17% Improvement</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-label">Stop Count</div>
+                        <div class="metric-comparison">
+                            <div class="metric-value traditional">
+                                <div class="metric-number">9.85</div>
+                                <div class="metric-tag">TRAD</div>
+                            </div>
+                            <div class="metric-divider"></div>
+                            <div class="metric-value fsar">
+                                <div class="metric-number">0.12</div>
+                                <div class="metric-tag">FSAR</div>
+                            </div>
+                        </div>
+                        <div class="improvement-badge">-98.8% Reduction</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-label">Throughput</div>
+                        <div class="metric-comparison">
+                            <div class="metric-value traditional">
+                                <div class="metric-number">4104</div>
+                                <div class="metric-tag">TRAD</div>
+                            </div>
+                            <div class="metric-divider"></div>
+                            <div class="metric-value fsar">
+                                <div class="metric-number">4980</div>
+                                <div class="metric-tag">FSAR</div>
+                            </div>
+                        </div>
+                        <div class="improvement-badge">+21% Increase</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 关键优势 -->
+            <div class="advantages-section">
+                <div class="advantages-title">Key Performance Indicators</div>
+                <div class="advantages-grid">
+                    <div class="advantage-item">
+                        <div class="advantage-icon">↑</div>
+                        <div class="advantage-value">+21%</div>
+                        <div class="advantage-label">Throughput Increase</div>
+                    </div>
+                    <div class="advantage-item">
+                        <div class="advantage-icon">⚡</div>
+                        <div class="advantage-value">+17%</div>
+                        <div class="advantage-label">Speed Improvement</div>
+                    </div>
+                    <div class="advantage-item">
+                        <div class="advantage-icon">✓</div>
+                        <div class="advantage-value">-98.8%</div>
+                        <div class="advantage-label">Stop Reduction</div>
+                    </div>
+                    <div class="advantage-item">
+                        <div class="advantage-icon">◆</div>
+                        <div class="advantage-value">4.8%</div>
+                        <div class="advantage-label">Net Sacrifice</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部信息 -->
+            <div class="footer-info">
+                <div class="footer-text">
+                    Validated by VISSIM microscopic traffic simulation | Patent CN202311836940.X
+                </div>
+                <div class="footer-logo">FSAR TECHNOLOGY</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

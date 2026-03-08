@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Debug v5.0-L</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1d29;
+            color: #e0e6ed;
+        }
+        #log {
+            background: #0d0f14;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
+        .info { color: #00d4ff; }
+    </style>
+</head>
+<body>
+    <h1>v5.0-L 调试日志</h1>
+    <div id="log"></div>
+
+    <script>
+        const log = document.getElementById('log');
+
+        function addLog(message, type = 'info') {
+            const p = document.createElement('p');
+            p.className = type;
+            p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(p);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        addLog('开始加载主文件...', 'info');
+
+        // 创建 iframe 加载主文件
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = 'fsar-demo-hightech.html';
+
+        iframe.onload = function() {
+            addLog('✅ HTML 文件加载成功', 'success');
+
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+                // 检查关键元素
+                const checks = [
+                    { id: 'traditionalCanvas', name: 'Traditional Canvas' },
+                    { id: 'fsarCanvas', name: 'FSAR Canvas' },
+                    { id: 'startBtn', name: 'Start Button' },
+                    { id: 'flowRate', name: 'Flow Rate Slider' },
+                    { id: 'tooltip-conflict', name: 'Tooltip Conflict' },
+                    { id: 'tooltip-isolation', name: 'Tooltip Isolation' },
+                    { id: 'tooltip-relief', name: 'Tooltip Relief' },
+                    { id: 'tooltip-flow', name: 'Tooltip Flow' },
+                    { id: 'icon-flow', name: 'Icon Flow' },
+                    { id: 'icon-relief', name: 'Icon Relief' }
+                ];
+
+                checks.forEach(check => {
+                    const element = iframeDoc.getElementById(check.id);
+                    if (element) {
+                        addLog(`✅ ${check.name} 找到`, 'success');
+                    } else {
+                        addLog(`❌ ${check.name} 未找到`, 'error');
+                    }
+                });
+
+                // 检查 Canvas 上下文
+                const tradCanvas = iframeDoc.getElementById('traditionalCanvas');
+                if (tradCanvas) {
+                    const ctx = tradCanvas.getContext('2d');
+                    if (ctx) {
+                        addLog('✅ Canvas 2D 上下文正常', 'success');
+                    } else {
+                        addLog('❌ Canvas 2D 上下文获取失败', 'error');
+                    }
+                }
+
+                // 监听控制台错误
+                iframe.contentWindow.addEventListener('error', function(e) {
+                    addLog(`❌ JavaScript 错误: ${e.message}`, 'error');
+                    addLog(`   位置: ${e.filename}:${e.lineno}:${e.colno}`, 'error');
+                });
+
+                // 检查是否有车辆生成
+                setTimeout(() => {
+                    const startBtn = iframeDoc.getElementById('startBtn');
+                    if (startBtn) {
+                        addLog('🔄 模拟点击开始按钮...', 'info');
+                        startBtn.click();
+
+                        setTimeout(() => {
+                            addLog('检查车辆生成状态...', 'info');
+                            // 这里可以添加更多检查
+                        }, 2000);
+                    }
+                }, 1000);
+
+            } catch (e) {
+                addLog(`❌ 检查过程出错: ${e.message}`, 'error');
+            }
+        };
+
+        iframe.onerror = function() {
+            addLog('❌ HTML 文件加载失败', 'error');
+        };
+
+        document.body.appendChild(iframe);
+    </script>
+</body>
+</html>
