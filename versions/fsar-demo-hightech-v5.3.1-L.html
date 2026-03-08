@@ -1130,7 +1130,7 @@
                 <span>FRAME: <span style="color: #00d4ff;" id="frameCounter">0</span></span>
             </div>
             <div class="status-item">
-                <span class="version-tag">MICRO-SIMULATION v5.3.2-L</span>
+                <span class="version-tag">MICRO-SIMULATION v5.3.1-L</span>
             </div>
         </div>
     </div>
@@ -1422,7 +1422,6 @@
         // v5.2-L: 仪表盘bar重新设计 — 数值移到bar右侧外部显示，解决bar太短时文字溢出问题
         //         标签缩短为Trad/FSAR，bar区域更长，对比更直观
         //         数值参考v4.0风格：数字放大(17px)并着色(橙/蓝)，单位缩小(9px灰色)，baseline对齐
-        // v5.3.2-L: 修复canvas内tooltip点击无反应 — 全局click关闭逻辑排除canvas元素
         // v5.3.1-L: 移动端Tooltip修复 — (1)修复重复id导致流量/泄压率tooltip无响应
         //           (2)添加touch事件支持移动端点击 (3)tooltip位置自适应屏幕边界
         // v5.3-L: 移动端响应式适配 — Canvas动态缩放、数据面板堆叠、页面可滚动
@@ -4081,9 +4080,9 @@
                 });
             });
 
-            // v5.3.2: 点击空白区域关闭所有tooltip（排除canvas和info-icon）
+            // v5.3.1: 点击空白区域关闭所有tooltip（移动端友好）
             document.addEventListener('click', function(e) {
-                if (!e.target.closest('.info-icon') && !e.target.closest('.tooltip-card') && !e.target.closest('canvas')) {
+                if (!e.target.closest('.info-icon') && !e.target.closest('.tooltip-card')) {
                     hideAllTooltips();
                 }
             });

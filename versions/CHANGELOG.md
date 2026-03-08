@@ -1,5 +1,36 @@
 # FSAR Demo Hightech 版本变更记录
 
+## v5.3.2-L (2026-03-08)
+### [Category: Fix - Canvas Tooltip Regression]
+
+**Problem/Motivation**:
+- v5.3.1新增的全局click关闭逻辑与canvas内tooltip冲突：canvas点击事件冒泡到document后，hideAllTooltips()立刻关闭了刚显示的tooltip
+
+**Changes**:
+- 全局click监听增加`!e.target.closest('canvas')`排除条件，canvas内的点击不再触发全局关闭
+
+**Effect**:
+- Canvas内4个机制图标tooltip恢复正常（PC端hover + 移动端点击均可用）
+
+## v5.3.1-L (2026-03-08)
+### [Category: Fix - Mobile Tooltip]
+
+**Problem/Motivation**:
+- 移动端点击tooltip悬浮卡片会超出画面边界，内容被截断
+- 交通流量(icon-flow)和泄压率(icon-relief)的tooltip点击无反应，因为泄压率tooltip存在重复id="tooltip-relief"，导致stats面板的tooltip被覆盖
+- info-icon仅绑定mouseenter/mouseleave事件，移动端无touch/click支持
+
+**Changes**:
+- 修复重复id：泄压率指标tooltip改为id="tooltip-relief-stats"，与机制四tooltip区分
+- info-icon新增click事件监听，支持移动端点击切换tooltip
+- 新增clampTooltipPosition()统一位置钳制函数，所有tooltip（canvas内+面板内）均受视口边界约束
+- Canvas内tooltip通过showCanvasTooltip()统一处理，自动检测右侧空间不足时左移或居中
+- 新增全局click监听，点击空白区域关闭所有tooltip
+
+**Effect**:
+- 移动端tooltip不再超出屏幕，始终保持8px内边距
+- 交通流量和泄压率的?图标点击正常弹出对应tooltip
+
 ## v5.3-L (2026-03-08)
 ### [Category: Feature - Mobile Responsive]
 
